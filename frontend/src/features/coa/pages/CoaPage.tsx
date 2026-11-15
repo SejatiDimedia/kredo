@@ -69,6 +69,8 @@ import {
   CheckCircle2,
   Lock,
 } from "lucide-react"
+import { apiFetch } from "@/lib/api"
+import { Loader2 } from "lucide-react"
 
 export interface CoaAccount {
   id: string
@@ -130,11 +132,13 @@ const INITIAL_ACCOUNTS: CoaAccount[] = [
 
 export function CoaPage() {
   const navigate = useNavigate()
-  const [accounts, setAccounts] = React.useState<CoaAccount[]>(INITIAL_ACCOUNTS)
+  const [accounts, setAccounts] = React.useState<CoaAccount[]>([])
+  const [isLoading, setIsLoading] = React.useState(true)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [searchQuery, setSearchQuery] = React.useState("")
   const [categoryFilter, setCategoryFilter] = React.useState<string>("ALL")
   const [natureFilter, setNatureFilter] = React.useState<string>("ALL")
-  
+
   // Set of collapsed parent account codes
   const [collapsedNodes, setCollapsedNodes] = React.useState<Set<string>>(new Set())
 
@@ -201,40 +205,95 @@ export function CoaPage() {
     })
   }, [accounts, searchQuery, categoryFilter, natureFilter, collapsedNodes])
 
+  // Fungsi untuk mengambil data akun live dari Backend PostgreSQL
+  const fetchAccounts = React.useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const data = await apiFetch<Array<{
+        id: number
+        code: string
+        name: string
+        type: "ASSET" | "LIABILITY" | "EQUITY" | "REVENUE" | "EXPENSE"
+        normalBalance: "DEBIT" | "CREDIT"
+        reportGroup: string
+        parentId: number | null
+        isPostable: boolean
+      }>>("/accounts?entityId=1")
+
+      // Menghitung level hierarki (1 = Induk, 2 = Sub-induk, 3 = Akun Transaksi)
+      const idToCodeMap = new Map<number, string>()
+      data.forEach(acc => idToCodeMap.set(acc.id, acc.code))
+
+      const mappedAccounts: CoaAccount[] = data.map(acc => {
+        let level = 1
+        if (acc.parentId) {
+          level = acc.isPostable ? 3 : 2
+        }
+        return {
+          id: String(acc.id),
+          code: acc.code,
+          name: acc.name,
+          level,
+          category: acc.type,
+          normalBalance: acc.normalBalance,
+          reportGroup: acc.reportGroup,
+          isPostable: acc.isPostable,
+          parentId: acc.parentId ? idToCodeMap.get(acc.parentId) : undefined,
+        }
+      })
+
+      setAccounts(mappedAccounts)
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Gagal memuat data akun"
+      toast.error(errorMsg)
+      // Fallback ke data lokal jika backend belum dinyalakan
+      setAccounts(INITIAL_ACCOUNTS)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  // Panggil fetchAccounts saat halaman pertama kali dibuka
+  React.useEffect(() => {
+    fetchAccounts()
+  }, [fetchAccounts])
+
   // Handle Add Account
-  const handleCreateAccount = (e: React.FormEvent) => {
+  const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newCode.trim() || !newName.trim()) {
       toast.error("Kode akun dan nama akun wajib diisi")
       return
     }
 
-    // Check duplicate code
-    if (accounts.some(a => a.code === newCode.trim())) {
-      toast.error(`Kode akun ${newCode} sudah digunakan`)
-      return
+    try {
+      setIsSubmitting(true)
+      const parent = accounts.find(a => a.code === newParentCode)
+
+      await apiFetch("/accounts?entityId=1", {
+        method: "POST",
+        body: JSON.stringify({
+          code: newCode.trim(),
+          name: newName.trim(),
+          type: newCategory,
+          normalBalance: newNormalBalance,
+          reportGroup: parent ? parent.reportGroup : "GENERAL",
+          parentId: parent ? Number(parent.id) : null,
+          isPostable: newIsPostable,
+        }),
+      })
+
+      toast.success(`Akun ${newCode} — ${newName} berhasil disimpan ke database PostgreSQL!`)
+      setIsDialogOpen(false)
+      setNewCode("")
+      setNewName("")
+      await fetchAccounts() // Refresh data langsung dari database
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Gagal menyimpan akun"
+      toast.error(errorMsg)
+    } finally {
+      setIsSubmitting(false)
     }
-
-    const parent = accounts.find(a => a.code === newParentCode)
-    const level = parent ? parent.level + 1 : 1
-
-    const newAccount: CoaAccount = {
-      id: newCode.trim(),
-      code: newCode.trim(),
-      name: newName.trim(),
-      level,
-      category: newCategory,
-      normalBalance: newNormalBalance,
-      reportGroup: parent ? parent.reportGroup : "GENERAL",
-      isPostable: newIsPostable,
-      parentId: newParentCode || undefined,
-    }
-
-    setAccounts(prev => [...prev, newAccount].sort((a, b) => a.code.localeCompare(b.code)))
-    setIsDialogOpen(false)
-    setNewCode("")
-    setNewName("")
-    toast.success(`Akun ${newCode} — ${newName} berhasil ditambahkan`)
   }
 
   const getCategoryBadge = (category: CoaAccount["category"]) => {
@@ -408,11 +467,18 @@ export function CoaPage() {
                 </FieldGroup>
 
                 <DialogFooter className="pt-4">
-                  <Button type="button" variant="outline" size="sm" onClick={() => setIsDialogOpen(false)}>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setIsDialogOpen(false)} disabled={isSubmitting}>
                     Batal
                   </Button>
-                  <Button type="submit" size="sm">
-                    Simpan Akun
+                  <Button type="submit" size="sm" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="size-3.5 mr-1.5 animate-spin" />
+                        Menyimpan...
+                      </>
+                    ) : (
+                      "Simpan Akun"
+                    )}
                   </Button>
                 </DialogFooter>
               </form>
@@ -506,7 +572,14 @@ export function CoaPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAccounts.length === 0 ? (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-32 text-center text-muted-foreground text-xs">
+                    <Loader2 className="size-4 animate-spin inline mr-2 text-primary" />
+                    Memuat data akun dari database PostgreSQL...
+                  </TableCell>
+                </TableRow>
+              ) : filteredAccounts.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="h-32 text-center text-muted-foreground text-xs">
                     Tidak ada akun yang sesuai dengan pencarian atau filter.
@@ -521,13 +594,12 @@ export function CoaPage() {
                   return (
                     <TableRow
                       key={account.code}
-                      className={`border-b border-border/20 transition-colors ${
-                        account.level === 1
-                          ? "bg-muted/20 font-semibold"
-                          : account.level === 2
+                      className={`border-b border-border/20 transition-colors ${account.level === 1
+                        ? "bg-muted/20 font-semibold"
+                        : account.level === 2
                           ? "bg-muted/5 font-medium"
                           : "hover:bg-muted/20"
-                      }`}
+                        }`}
                     >
                       {/* Account Code Column */}
                       <TableCell className="font-mono text-xs pl-6 py-2.5">
