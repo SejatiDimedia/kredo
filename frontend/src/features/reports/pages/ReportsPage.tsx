@@ -1,36 +1,71 @@
-import { Card } from "@/components/ui/card"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { MoneyText } from "@/components/shared/MoneyText"
 import { Download, FileSpreadsheet, Printer, CheckCircle2 } from "lucide-react"
 
 export function ReportsPage() {
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto">
+      {/* Breadcrumb Navigation */}
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Buku Besar</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Laporan Keuangan Enterprise</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      {/* Header and Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">
-            Laporan Keuangan Enterprise
+          <h1 className="text-2xl font-bold tracking-tight text-foreground font-heading">
+            Laporan Keuangan
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Snapshot transaksi konsisten (REPEATABLE READ). Neraca Saldo, Laba Rugi, dan Neraca.
+            Snapshot transaksi konsisten (PostgreSQL REPEATABLE READ). Neraca Saldo, Laba Rugi, dan Neraca.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" className="gap-1.5 text-xs">
-            <Download className="size-3.5" /> CSV
+          <Button size="sm" variant="outline">
+            <Download className="size-3.5 mr-1.5" /> CSV
           </Button>
-          <Button size="sm" variant="outline" className="gap-1.5 text-xs">
-            <FileSpreadsheet className="size-3.5" /> Excel
+          <Button size="sm" variant="outline">
+            <FileSpreadsheet className="size-3.5 mr-1.5" /> Excel
           </Button>
-          <Button size="sm" className="gap-1.5 text-xs bg-primary text-primary-foreground font-semibold">
-            <Printer className="size-3.5" /> Cetak PDF
+          <Button size="sm">
+            <Printer className="size-3.5 mr-1.5" /> Cetak PDF
           </Button>
         </div>
       </div>
 
-      <Tabs defaultValue="trial-balance" className="w-full space-y-6">
+      <Tabs defaultValue="trial-balance" className="w-full space-y-4">
         <TabsList className="bg-muted/60 p-1">
           <TabsTrigger value="trial-balance" className="text-xs">Neraca Saldo (Trial Balance)</TabsTrigger>
           <TabsTrigger value="income-statement" className="text-xs">Laba Rugi (Income Statement)</TabsTrigger>
@@ -38,97 +73,113 @@ export function ReportsPage() {
         </TabsList>
 
         <TabsContent value="trial-balance">
-          <div className="overflow-hidden rounded-xl border border-border/40 bg-card shadow-xs">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-b border-border/30 bg-muted/20">
-                  <TableHead className="w-[120px] pl-5">Kode Akun</TableHead>
-                  <TableHead>Nama Akun</TableHead>
-                  <TableHead className="w-[160px] text-right">Saldo Awal</TableHead>
-                  <TableHead className="w-[160px] text-right">Mutasi Debit</TableHead>
-                  <TableHead className="w-[160px] text-right">Mutasi Kredit</TableHead>
-                  <TableHead className="w-[160px] text-right pr-5">Saldo Akhir</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow className="border-b border-border/20">
-                  <TableCell className="font-mono pl-5 text-primary font-bold">1101</TableCell>
-                  <TableCell className="font-medium text-foreground">Kas Kecil</TableCell>
-                  <TableCell className="text-right"><MoneyText amount="0" /></TableCell>
-                  <TableCell className="text-right"><MoneyText amount="100000000" /></TableCell>
-                  <TableCell className="text-right"><MoneyText amount="20000000" /></TableCell>
-                  <TableCell className="text-right pr-5 font-bold"><MoneyText amount="80000000" /></TableCell>
-                </TableRow>
-                <TableRow className="border-b border-border/20">
-                  <TableCell className="font-mono pl-5 text-primary font-bold">1200</TableCell>
-                  <TableCell className="font-medium text-foreground">Piutang Usaha</TableCell>
-                  <TableCell className="text-right"><MoneyText amount="0" /></TableCell>
-                  <TableCell className="text-right"><MoneyText amount="15000000" /></TableCell>
-                  <TableCell className="text-right"><MoneyText amount="0" /></TableCell>
-                  <TableCell className="text-right pr-5 font-bold"><MoneyText amount="15000000" /></TableCell>
-                </TableRow>
-                <TableRow className="border-b border-border/20">
-                  <TableCell className="font-mono pl-5 text-primary font-bold">1300</TableCell>
-                  <TableCell className="font-medium text-foreground">Persediaan Barang Dagang</TableCell>
-                  <TableCell className="text-right"><MoneyText amount="0" /></TableCell>
-                  <TableCell className="text-right"><MoneyText amount="20000000" /></TableCell>
-                  <TableCell className="text-right"><MoneyText amount="0" /></TableCell>
-                  <TableCell className="text-right pr-5 font-bold"><MoneyText amount="20000000" /></TableCell>
-                </TableRow>
-                <TableRow className="border-t-2 border-primary/20 bg-muted/30 font-bold">
-                  <TableCell colSpan={3} className="pl-5 text-foreground">TOTAL KESEIMBANGAN (INV-01)</TableCell>
-                  <TableCell className="text-right"><MoneyText amount="135000000" className="font-bold text-foreground" /></TableCell>
-                  <TableCell className="text-right"><MoneyText amount="135000000" className="font-bold text-foreground" /></TableCell>
-                  <TableCell className="text-right pr-5 text-emerald-600 font-extrabold flex items-center justify-end gap-1">
-                    <CheckCircle2 className="size-3.5" /> SEIMBANG
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
+          <Card>
+            <CardHeader className="border-b border-border/30 pb-3">
+              <CardTitle className="text-base font-semibold">Neraca Saldo (Trial Balance)</CardTitle>
+              <CardDescription className="text-xs">
+                Per 15 November 2026 • Validasi Invariant Keseimbangan (INV-01)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b border-border/30 bg-muted/10 hover:bg-muted/10">
+                    <TableHead className="w-[120px] pl-6 font-semibold">Kode Akun</TableHead>
+                    <TableHead className="font-semibold">Nama Akun</TableHead>
+                    <TableHead className="w-[160px] text-right font-semibold">Saldo Awal</TableHead>
+                    <TableHead className="w-[160px] text-right font-semibold">Mutasi Debit</TableHead>
+                    <TableHead className="w-[160px] text-right font-semibold">Mutasi Kredit</TableHead>
+                    <TableHead className="w-[160px] text-right pr-6 font-semibold">Saldo Akhir</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow className="border-b border-border/20 hover:bg-muted/10">
+                    <TableCell className="font-mono pl-6 text-primary font-bold text-xs py-3">1101</TableCell>
+                    <TableCell className="font-medium text-foreground text-xs py-3">Kas Kecil Operasional</TableCell>
+                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="0" /></TableCell>
+                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="100000000" /></TableCell>
+                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="20000000" /></TableCell>
+                    <TableCell className="text-right pr-6 font-bold text-xs font-mono py-3"><MoneyText amount="80000000" /></TableCell>
+                  </TableRow>
+                  <TableRow className="border-b border-border/20 hover:bg-muted/10">
+                    <TableCell className="font-mono pl-6 text-primary font-bold text-xs py-3">1200</TableCell>
+                    <TableCell className="font-medium text-foreground text-xs py-3">Piutang Usaha</TableCell>
+                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="0" /></TableCell>
+                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="15000000" /></TableCell>
+                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="0" /></TableCell>
+                    <TableCell className="text-right pr-6 font-bold text-xs font-mono py-3"><MoneyText amount="15000000" /></TableCell>
+                  </TableRow>
+                  <TableRow className="border-b border-border/20 hover:bg-muted/10">
+                    <TableCell className="font-mono pl-6 text-primary font-bold text-xs py-3">1300</TableCell>
+                    <TableCell className="font-medium text-foreground text-xs py-3">Persediaan Barang Dagang</TableCell>
+                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="0" /></TableCell>
+                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="20000000" /></TableCell>
+                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="0" /></TableCell>
+                    <TableCell className="text-right pr-6 font-bold text-xs font-mono py-3"><MoneyText amount="20000000" /></TableCell>
+                  </TableRow>
+                  <TableRow className="border-t-2 border-border/60 bg-muted/20 font-bold">
+                    <TableCell colSpan={3} className="pl-6 text-foreground text-xs py-3">TOTAL KESEIMBANGAN (INV-01)</TableCell>
+                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="135000000" className="font-bold text-foreground" /></TableCell>
+                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="135000000" className="font-bold text-foreground" /></TableCell>
+                    <TableCell className="text-right pr-6 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs py-3">
+                      <span className="inline-flex items-center gap-1">
+                        <CheckCircle2 className="size-3.5" /> SEIMBANG
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="income-statement">
-          <Card className="p-6 border-border/40 shadow-xs">
-            <h3 className="font-heading text-lg font-bold">Laporan Laba Rugi Komparatif</h3>
-            <p className="text-xs text-muted-foreground mt-1 mb-4">Periode: 01 Jan 2026 – 15 Nov 2026</p>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between border-b pb-2">
-                <span>Pendapatan Penjualan Bersih (Akun 4100)</span>
+          <Card>
+            <CardHeader className="border-b border-border/30 pb-3">
+              <CardTitle className="text-base font-semibold">Laporan Laba Rugi Komparatif</CardTitle>
+              <CardDescription className="text-xs">Periode: 01 Jan 2026 – 15 Nov 2026</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-4 text-xs">
+              <div className="flex justify-between border-b border-border/20 pb-2">
+                <span className="text-foreground">Pendapatan Penjualan Bersih (Akun 4100)</span>
                 <MoneyText amount="450000000" highlightPositive />
               </div>
-              <div className="flex justify-between border-b pb-2">
-                <span>Harga Pokok Penjualan (Akun 5000)</span>
+              <div className="flex justify-between border-b border-border/20 pb-2">
+                <span className="text-foreground">Harga Pokok Penjualan (Akun 5000)</span>
                 <MoneyText amount="-270000000" accountingNegative />
               </div>
-              <div className="flex justify-between font-bold pt-1">
-                <span>Laba Kotor</span>
+              <div className="flex justify-between font-bold pt-1 text-sm">
+                <span>Laba Kotor Operasional</span>
                 <MoneyText amount="180000000" highlightPositive />
               </div>
-            </div>
+            </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="balance-sheet">
-          <Card className="p-6 border-border/40 shadow-xs">
-            <h3 className="font-heading text-lg font-bold">Neraca Keuangan (Balance Sheet)</h3>
-            <p className="text-xs text-muted-foreground mt-1 mb-4">Posisi per 15 November 2026 • Invariant: Aset = Liabilitas + Ekuitas</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-              <div className="rounded-xl border border-border/40 p-4 space-y-2">
-                <span className="text-xs font-semibold uppercase text-muted-foreground">Aktiva / Aset</span>
-                <div className="flex justify-between font-bold text-base pt-2">
-                  <span>Total Aset</span>
-                  <MoneyText amount="115000000" className="text-primary font-bold" />
+          <Card>
+            <CardHeader className="border-b border-border/30 pb-3">
+              <CardTitle className="text-base font-semibold">Neraca Keuangan (Balance Sheet)</CardTitle>
+              <CardDescription className="text-xs">Posisi per 15 November 2026 • Invariant: Aset = Liabilitas + Ekuitas</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                <div className="rounded-lg border border-border/40 p-4 space-y-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Aktiva / Aset</span>
+                  <div className="flex justify-between font-bold text-sm pt-2">
+                    <span>Total Aset</span>
+                    <MoneyText amount="115000000" className="text-primary font-bold" />
+                  </div>
+                </div>
+                <div className="rounded-lg border border-border/40 p-4 space-y-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pasiva / Liabilitas & Ekuitas</span>
+                  <div className="flex justify-between font-bold text-sm pt-2">
+                    <span>Total Pasiva</span>
+                    <MoneyText amount="115000000" className="text-primary font-bold" />
+                  </div>
                 </div>
               </div>
-              <div className="rounded-xl border border-border/40 p-4 space-y-2">
-                <span className="text-xs font-semibold uppercase text-muted-foreground">Pasiva / Liabilitas & Ekuitas</span>
-                <div className="flex justify-between font-bold text-base pt-2">
-                  <span>Total Pasiva</span>
-                  <MoneyText amount="115000000" className="text-primary font-bold" />
-                </div>
-              </div>
-            </div>
+            </CardContent>
           </Card>
         </TabsContent>
       </Tabs>

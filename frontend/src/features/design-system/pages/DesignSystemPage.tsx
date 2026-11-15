@@ -29,13 +29,20 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 import { MoneyText } from "@/components/shared/MoneyText"
 
 // Icons
 import {
   CheckCircle2,
   Plus,
-  Sparkles,
   SlidersHorizontal,
   Bell,
   Layers,
@@ -51,17 +58,26 @@ export function DesignSystemPage() {
   const [progressVal, setProgressVal] = React.useState(75)
 
   return (
-    <div className="flex flex-col gap-10 max-w-7xl mx-auto">
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto">
+      {/* Breadcrumb Navigation */}
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Sistem</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Design System UI</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
       {/* Title */}
       <div>
-        <div className="inline-flex items-center gap-2 text-xs font-semibold tracking-wider text-primary uppercase mb-1">
-          <Sparkles className="size-3.5" />
-          <span>Design System Catalog (shadcn/ui + Tailwind v4)</span>
-        </div>
-        <h1 className="font-heading text-3xl font-extrabold tracking-tight">
+        <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">
           Kredo Component Showcase
         </h1>
-        <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
+        <p className="text-xs text-muted-foreground mt-0.5 max-w-2xl">
           Katalog referensi warna Deep Teal (#0D6276) dan Slate (#101727) yang diterapkan pada seluruh reusable UI components shadcn.
         </p>
       </div>

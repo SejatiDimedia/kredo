@@ -44,7 +44,6 @@ import {
   Building2,
   ChevronDown,
   Check,
-  Sparkles,
   LogOut
 } from "lucide-react"
 
@@ -69,21 +68,16 @@ export function AppShell() {
         <Sidebar collapsible="icon" className="border-r border-border/40 bg-sidebar">
           {/* Sidebar Header: Brand Logo */}
           <SidebarHeader className="border-b border-border/30 p-3">
-            <div className="flex items-center gap-3">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-xs">
-                <Scale className="size-5" />
+            <div className="flex items-center gap-2.5">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground font-bold">
+                <Scale className="size-4" />
               </div>
-              <div className="flex flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-heading text-base font-bold tracking-tight text-foreground">
-                    Kredo
-                  </span>
-                  <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary text-[10px] py-0 px-1 font-semibold">
-                    Core GL
-                  </Badge>
-                </div>
-                <span className="text-[11px] text-muted-foreground truncate">
-                  Setiap entri, seimbang.
+              <div className="flex flex-col group-data-[collapsible=icon]:hidden">
+                <span className="font-semibold text-sm tracking-tight text-foreground">
+                  Kredo Accounting
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  General Ledger Core
                 </span>
               </div>
             </div>
@@ -197,10 +191,9 @@ export function AppShell() {
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={location.pathname === "/design-system"}>
-                      <NavLink to="/design-system" className="flex items-center gap-2.5 text-primary font-medium">
+                      <NavLink to="/design-system" className="flex items-center gap-2.5">
                         <Palette className="size-4" />
                         <span>Design System UI</span>
-                        <Sparkles className="size-3 text-amber-500 ml-auto group-data-[collapsible=icon]:hidden" />
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -334,11 +327,11 @@ export function AppShell() {
               </DropdownMenu>
 
               {/* Active Accounting Period Chip (PRD 14.8) */}
-              <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-teal-500/30 bg-teal-500/10 px-2.5 py-0.5 text-xs text-teal-700 dark:text-teal-300">
-                <span className="size-1.5 rounded-full bg-teal-500 animate-pulse" />
-                <span className="font-medium">Nov 2026</span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600">OPEN</span>
-              </div>
+              <Badge variant="outline" className="hidden sm:inline-flex items-center gap-1.5 text-xs font-normal border-teal-500/30 bg-teal-500/5">
+                <CalendarClock className="size-3 text-teal-700 dark:text-teal-400" />
+                <span>Nov 2026</span>
+                <span className="text-[10px] font-semibold text-teal-700 dark:text-teal-400">OPEN</span>
+              </Badge>
             </div>
 
             {/* Right Topbar Actions */}
