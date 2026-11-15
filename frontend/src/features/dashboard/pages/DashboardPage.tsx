@@ -72,7 +72,7 @@ export function DashboardPage() {
             <Calendar className="size-3.5 mr-1.5" />
             Periode: Nov 2026
           </Button>
-          <Button size="sm" onClick={() => navigate("/journals")}>
+          <Button size="sm" onClick={() => navigate("/journals/new")}>
             <Plus className="size-3.5 mr-1.5" />
             Entri Jurnal Baru
           </Button>

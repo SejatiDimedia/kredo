@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 import {
   Breadcrumb,
@@ -115,6 +116,7 @@ const INITIAL_JOURNALS: JournalRecord[] = [
 ]
 
 export function JournalsPage() {
+  const navigate = useNavigate()
   const [journals] = React.useState<JournalRecord[]>(INITIAL_JOURNALS)
   const [search, setSearch] = React.useState("")
   const [statusFilter, setStatusFilter] = React.useState<string>("ALL")
@@ -179,7 +181,7 @@ export function JournalsPage() {
             <Download className="size-3.5 mr-1.5" />
             Ekspor CSV
           </Button>
-          <Button size="sm" onClick={() => toast.info("Form input jurnal baru dibuka...")}>
+          <Button size="sm" onClick={() => navigate("/journals/new")}>
             <Plus className="size-3.5 mr-1.5" />
             Input Jurnal Baru
           </Button>
@@ -281,7 +283,7 @@ export function JournalsPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48 text-xs">
-                          <DropdownMenuItem onClick={() => toast.info(`Melihat detail ${journal.journalNo}`)}>
+                          <DropdownMenuItem onClick={() => navigate(`/journals/${journal.journalNo}`)}>
                             <Eye className="size-3.5 mr-2" />
                             Lihat Rincian Akun
                           </DropdownMenuItem>

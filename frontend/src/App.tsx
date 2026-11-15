@@ -3,6 +3,8 @@ import { AppShell } from "@/components/layout/AppShell"
 import { DashboardPage } from "@/features/dashboard/pages/DashboardPage"
 import { CoaPage } from "@/features/coa/pages/CoaPage"
 import { JournalsPage } from "@/features/journals/pages/JournalsPage"
+import { JournalEditorPage } from "@/features/journals/pages/JournalEditorPage"
+import { JournalDetailPage } from "@/features/journals/pages/JournalDetailPage"
 import { ApprovalsPage } from "@/features/approvals/pages/ApprovalsPage"
 import { PeriodsPage } from "@/features/periods/pages/PeriodsPage"
 import { ReportsPage } from "@/features/reports/pages/ReportsPage"
@@ -22,6 +24,8 @@ export function App() {
             <Route index element={<DashboardPage />} />
             <Route path="accounts" element={<CoaPage />} />
             <Route path="journals" element={<JournalsPage />} />
+            <Route path="journals/new" element={<JournalEditorPage />} />
+            <Route path="journals/:id" element={<JournalDetailPage />} />
             <Route path="approvals" element={<ApprovalsPage />} />
             <Route path="periods" element={<PeriodsPage />} />
             <Route path="reports" element={<ReportsPage />} />
