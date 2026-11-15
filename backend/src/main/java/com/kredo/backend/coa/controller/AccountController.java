@@ -14,7 +14,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/accounts")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173") // Izinkan Frontend React Vite kita mengakses API ini (CORS)
+@CrossOrigin(origins = { "http://localhost:5173", "http://127.0.0.1:5173" }) // Izinkan Frontend React Vite kita
+                                                                             // mengakses API ini (CORS)
 public class AccountController {
 
     private final AccountService accountService;
