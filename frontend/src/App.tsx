@@ -8,6 +8,7 @@ import { JournalDetailPage } from "@/features/journals/pages/JournalDetailPage"
 import { ApprovalsPage } from "@/features/approvals/pages/ApprovalsPage"
 import { PeriodsPage } from "@/features/periods/pages/PeriodsPage"
 import { ReportsPage } from "@/features/reports/pages/ReportsPage"
+import { GeneralLedgerPage } from "@/features/reports/pages/GeneralLedgerPage"
 import { ImportsPage } from "@/features/imports/pages/ImportsPage"
 import { AuditPage } from "@/features/audit/pages/AuditPage"
 import { DesignSystemPage } from "@/features/design-system/pages/DesignSystemPage"
@@ -29,6 +30,7 @@ export function App() {
             <Route path="approvals" element={<ApprovalsPage />} />
             <Route path="periods" element={<PeriodsPage />} />
             <Route path="reports" element={<ReportsPage />} />
+            <Route path="reports/general-ledger" element={<GeneralLedgerPage />} />
             <Route path="imports" element={<ImportsPage />} />
             <Route path="audit" element={<AuditPage />} />
             <Route path="design-system" element={<DesignSystemPage />} />

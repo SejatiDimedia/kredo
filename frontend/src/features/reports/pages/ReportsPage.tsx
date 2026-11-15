@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -24,9 +25,11 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { MoneyText } from "@/components/shared/MoneyText"
-import { Download, FileSpreadsheet, Printer, CheckCircle2 } from "lucide-react"
+import { Download, FileSpreadsheet, Printer, CheckCircle2, BookOpen } from "lucide-react"
 
 export function ReportsPage() {
+  const navigate = useNavigate()
+
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto">
       {/* Breadcrumb Navigation */}
@@ -53,6 +56,9 @@ export function ReportsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button size="sm" variant="secondary" onClick={() => navigate("/reports/general-ledger")}>
+            <BookOpen className="size-3.5 mr-1.5 text-primary" /> Buku Besar Per Akun
+          </Button>
           <Button size="sm" variant="outline">
             <Download className="size-3.5 mr-1.5" /> CSV
           </Button>
@@ -94,7 +100,15 @@ export function ReportsPage() {
                 </TableHeader>
                 <TableBody>
                   <TableRow className="border-b border-border/20 hover:bg-muted/10">
-                    <TableCell className="font-mono pl-6 text-primary font-bold text-xs py-3">1101</TableCell>
+                    <TableCell className="font-mono pl-6 text-primary font-bold text-xs py-3">
+                      <button
+                        type="button"
+                        onClick={() => navigate("/reports/general-ledger?account=1101")}
+                        className="hover:underline text-primary"
+                      >
+                        1101
+                      </button>
+                    </TableCell>
                     <TableCell className="font-medium text-foreground text-xs py-3">Kas Kecil Operasional</TableCell>
                     <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="0" /></TableCell>
                     <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="100000000" /></TableCell>
@@ -102,7 +116,15 @@ export function ReportsPage() {
                     <TableCell className="text-right pr-6 font-bold text-xs font-mono py-3"><MoneyText amount="80000000" /></TableCell>
                   </TableRow>
                   <TableRow className="border-b border-border/20 hover:bg-muted/10">
-                    <TableCell className="font-mono pl-6 text-primary font-bold text-xs py-3">1200</TableCell>
+                    <TableCell className="font-mono pl-6 text-primary font-bold text-xs py-3">
+                      <button
+                        type="button"
+                        onClick={() => navigate("/reports/general-ledger?account=1201")}
+                        className="hover:underline text-primary"
+                      >
+                        1200
+                      </button>
+                    </TableCell>
                     <TableCell className="font-medium text-foreground text-xs py-3">Piutang Usaha</TableCell>
                     <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="0" /></TableCell>
                     <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="15000000" /></TableCell>
@@ -110,7 +132,15 @@ export function ReportsPage() {
                     <TableCell className="text-right pr-6 font-bold text-xs font-mono py-3"><MoneyText amount="15000000" /></TableCell>
                   </TableRow>
                   <TableRow className="border-b border-border/20 hover:bg-muted/10">
-                    <TableCell className="font-mono pl-6 text-primary font-bold text-xs py-3">1300</TableCell>
+                    <TableCell className="font-mono pl-6 text-primary font-bold text-xs py-3">
+                      <button
+                        type="button"
+                        onClick={() => navigate("/reports/general-ledger?account=2101")}
+                        className="hover:underline text-primary"
+                      >
+                        1300
+                      </button>
+                    </TableCell>
                     <TableCell className="font-medium text-foreground text-xs py-3">Persediaan Barang Dagang</TableCell>
                     <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="0" /></TableCell>
                     <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="20000000" /></TableCell>

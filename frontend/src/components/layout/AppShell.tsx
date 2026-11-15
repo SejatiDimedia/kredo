@@ -39,6 +39,7 @@ import {
   ShieldCheck,
   Palette,
   Scale,
+  FileSpreadsheet,
   Sun,
   Moon,
   Building2,
@@ -111,10 +112,19 @@ export function AppShell() {
                   </SidebarMenuItem>
 
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={location.pathname === "/journals"}>
+                    <SidebarMenuButton asChild isActive={location.pathname === "/journals" || location.pathname.startsWith("/journals/")}>
                       <NavLink to="/journals" className="flex items-center gap-2.5">
                         <BookOpen className="size-4" />
                         <span>Jurnal Umum</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={location.pathname.startsWith("/reports/general-ledger")}>
+                      <NavLink to="/reports/general-ledger" className="flex items-center gap-2.5">
+                        <FileSpreadsheet className="size-4" />
+                        <span>Buku Besar</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

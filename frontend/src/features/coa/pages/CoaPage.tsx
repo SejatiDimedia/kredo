@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 import {
   Breadcrumb,
@@ -128,6 +129,7 @@ const INITIAL_ACCOUNTS: CoaAccount[] = [
 ]
 
 export function CoaPage() {
+  const navigate = useNavigate()
   const [accounts, setAccounts] = React.useState<CoaAccount[]>(INITIAL_ACCOUNTS)
   const [searchQuery, setSearchQuery] = React.useState("")
   const [categoryFilter, setCategoryFilter] = React.useState<string>("ALL")
@@ -599,7 +601,7 @@ export function CoaPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48 text-xs">
-                            <DropdownMenuItem onClick={() => toast.info(`Membuka buku besar untuk ${account.code}`)}>
+                            <DropdownMenuItem onClick={() => navigate(`/reports/general-ledger?account=${account.code}`)}>
                               <BookOpen className="size-3.5 mr-2" />
                               Lihat Buku Besar
                             </DropdownMenuItem>
