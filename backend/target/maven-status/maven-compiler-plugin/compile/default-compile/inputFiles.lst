@@ -1,3 +1,11 @@
 /Users/timurdianradhasejati/Programming/Code/Web/React/kredo/backend/src/main/java/com/kredo/backend/HealthController.java
 /Users/timurdianradhasejati/Programming/Code/Web/React/kredo/backend/src/main/java/com/kredo/backend/KredoApplication.java
+/Users/timurdianradhasejati/Programming/Code/Web/React/kredo/backend/src/main/java/com/kredo/backend/coa/controller/AccountController.java
+/Users/timurdianradhasejati/Programming/Code/Web/React/kredo/backend/src/main/java/com/kredo/backend/coa/domain/Account.java
+/Users/timurdianradhasejati/Programming/Code/Web/React/kredo/backend/src/main/java/com/kredo/backend/coa/domain/AccountType.java
+/Users/timurdianradhasejati/Programming/Code/Web/React/kredo/backend/src/main/java/com/kredo/backend/coa/domain/NormalBalance.java
+/Users/timurdianradhasejati/Programming/Code/Web/React/kredo/backend/src/main/java/com/kredo/backend/coa/dto/AccountResponse.java
+/Users/timurdianradhasejati/Programming/Code/Web/React/kredo/backend/src/main/java/com/kredo/backend/coa/dto/CreateAccountRequest.java
+/Users/timurdianradhasejati/Programming/Code/Web/React/kredo/backend/src/main/java/com/kredo/backend/coa/repository/AccountRepository.java
+/Users/timurdianradhasejati/Programming/Code/Web/React/kredo/backend/src/main/java/com/kredo/backend/coa/service/AccountService.java
 /Users/timurdianradhasejati/Programming/Code/Web/React/kredo/backend/src/main/java/com/kredo/backend/shared/domain/Money.java
