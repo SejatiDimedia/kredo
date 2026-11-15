@@ -65,18 +65,18 @@ export function AppShell() {
     <SidebarProvider defaultOpen>
       <div className="flex min-h-screen w-full bg-background text-foreground">
         {/* Accounting Sidebar */}
-        <Sidebar collapsible="icon" className="border-r border-border/40 bg-sidebar">
+        <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
           {/* Sidebar Header: Brand Logo */}
-          <SidebarHeader className="border-b border-border/30 p-3">
+          <SidebarHeader className="border-b border-sidebar-border p-3">
             <div className="flex items-center gap-2.5">
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground font-bold">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-white text-primary font-bold shadow-xs">
                 <Scale className="size-4" />
               </div>
               <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-                <span className="font-semibold text-sm tracking-tight text-foreground">
+                <span className="font-semibold text-sm tracking-tight text-sidebar-foreground">
                   Kredo Accounting
                 </span>
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-[11px] text-sidebar-foreground/75">
                   General Ledger Core
                 </span>
               </div>
@@ -87,7 +87,7 @@ export function AppShell() {
           <SidebarContent className="px-2 py-3 space-y-4">
             {/* Group 1: Inti Buku Besar */}
             <SidebarGroup>
-              <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2">
+              <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/70 px-2">
                 Buku Besar
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -126,7 +126,7 @@ export function AppShell() {
                           <CheckSquare className="size-4" />
                           <span>Persetujuan</span>
                         </div>
-                        <Badge variant="secondary" className="ml-auto text-[10px] h-4 px-1.5 bg-amber-500/10 text-amber-700 dark:text-amber-400 group-data-[collapsible=icon]:hidden">
+                        <Badge variant="outline" className="ml-auto text-[10px] h-4 px-1.5 border-white/30 text-white bg-white/10 group-data-[collapsible=icon]:hidden">
                           2
                         </Badge>
                       </NavLink>
@@ -138,7 +138,7 @@ export function AppShell() {
 
             {/* Group 2: Periode & Pelaporan */}
             <SidebarGroup>
-              <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2">
+              <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/70 px-2">
                 Periode & Laporan
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -184,7 +184,7 @@ export function AppShell() {
 
             {/* Group 3: Design System & Dokumentasi */}
             <SidebarGroup>
-              <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2">
+              <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/70 px-2">
                 Design & Referensi
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -203,20 +203,20 @@ export function AppShell() {
           </SidebarContent>
 
           {/* Sidebar Footer: User Session Switcher */}
-          <SidebarFooter className="border-t border-border/30 p-2">
+          <SidebarFooter className="border-t border-sidebar-border p-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start gap-2.5 px-2 h-12 hover:bg-muted/50">
+                <Button variant="ghost" className="w-full justify-start gap-2.5 px-2 h-12 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
                   <Avatar size="sm">
-                    <AvatarFallback className="bg-primary text-primary-foreground font-bold text-xs">
+                    <AvatarFallback className="bg-white/20 text-white font-bold text-xs border border-white/20">
                       {currentUser.initials}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col items-start text-left overflow-hidden group-data-[collapsible=icon]:hidden">
-                    <span className="text-xs font-semibold text-foreground truncate">{currentUser.name}</span>
-                    <span className="text-[10px] text-muted-foreground truncate">{currentUser.role}</span>
+                    <span className="text-xs font-semibold text-sidebar-foreground truncate">{currentUser.name}</span>
+                    <span className="text-[10px] text-sidebar-foreground/75 truncate">{currentUser.role}</span>
                   </div>
-                  <ChevronDown className="size-3.5 text-muted-foreground ml-auto group-data-[collapsible=icon]:hidden" />
+                  <ChevronDown className="size-3.5 text-sidebar-foreground/70 ml-auto group-data-[collapsible=icon]:hidden" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 text-xs">
