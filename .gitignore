@@ -24,3 +24,7 @@ lerna-debug.log*
 .env
 .env*.local
 !.env.example
+
+# Java / Maven
+target/
+*.class
