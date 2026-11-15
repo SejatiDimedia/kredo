@@ -518,71 +518,121 @@ export function App() {
 
               {/* General Ledger Table */}
               <div>
-                <div className="mb-4 flex items-center justify-between">
+                <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <h2 className="font-heading text-xl font-bold tracking-tight">Tabel Buku Besar (General Ledger Table)</h2>
-                    <p className="text-xs text-muted-foreground">Menggunakan komponen shadcn Table dengan baris kompak:</p>
+                    <p className="text-xs text-muted-foreground">Desain baru: Border ultra-halus (hairline), tanpa outline kaku yang berat.</p>
                   </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" className="gap-1.5 text-xs">
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8">
                       <Download className="size-3.5" /> Ekspor CSV
                     </Button>
-                    <Button size="sm" variant="outline" className="gap-1.5 text-xs">
+                    <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8">
                       <FileSpreadsheet className="size-3.5" /> Ekspor Excel
                     </Button>
                   </div>
                 </div>
 
-                <Card className="border-border shadow-xs overflow-hidden">
+                {/* Modern Refined Table Container */}
+                <div className="overflow-hidden rounded-xl border border-border/40 bg-card shadow-xs">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-muted/50 hover:bg-muted/50">
-                        <TableHead className="w-[140px] font-semibold text-xs">No. Jurnal</TableHead>
-                        <TableHead className="w-[100px] font-semibold text-xs">Tanggal</TableHead>
-                        <TableHead className="font-semibold text-xs">Deskripsi Transaksi</TableHead>
-                        <TableHead className="w-[180px] font-semibold text-xs">Akun Terkait</TableHead>
-                        <TableHead className="w-[150px] text-right font-semibold text-xs">Debit (IDR)</TableHead>
-                        <TableHead className="w-[150px] text-right font-semibold text-xs">Kredit (IDR)</TableHead>
-                        <TableHead className="w-[100px] text-center font-semibold text-xs">Status</TableHead>
+                      <TableRow className="border-b border-border/30 bg-muted/20 hover:bg-muted/20">
+                        <TableHead className="w-[150px] font-semibold text-[11px] text-muted-foreground uppercase tracking-wider pl-5">
+                          No. Jurnal
+                        </TableHead>
+                        <TableHead className="w-[110px] font-semibold text-[11px] text-muted-foreground uppercase tracking-wider">
+                          Tanggal
+                        </TableHead>
+                        <TableHead className="font-semibold text-[11px] text-muted-foreground uppercase tracking-wider">
+                          Deskripsi Transaksi
+                        </TableHead>
+                        <TableHead className="w-[180px] font-semibold text-[11px] text-muted-foreground uppercase tracking-wider">
+                          Akun Terkait
+                        </TableHead>
+                        <TableHead className="w-[150px] text-right font-semibold text-[11px] text-muted-foreground uppercase tracking-wider">
+                          Debit (IDR)
+                        </TableHead>
+                        <TableHead className="w-[150px] text-right font-semibold text-[11px] text-muted-foreground uppercase tracking-wider">
+                          Kredit (IDR)
+                        </TableHead>
+                        <TableHead className="w-[110px] text-center font-semibold text-[11px] text-muted-foreground uppercase tracking-wider pr-5">
+                          Status
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
-                    <TableBody className="text-xs">
-                      <TableRow>
-                        <TableCell className="font-mono font-semibold text-primary">JV-PTM-2026-000001</TableCell>
-                        <TableCell className="font-mono text-muted-foreground">14 Nov 2026</TableCell>
+                    <TableBody>
+                      <TableRow className="border-b border-border/20 transition-colors hover:bg-primary/[0.02]">
+                        <TableCell className="font-mono font-semibold text-primary pl-5">JV-PTM-2026-000001</TableCell>
+                        <TableCell className="font-mono text-muted-foreground text-xs">14 Nov 2026</TableCell>
                         <TableCell className="font-medium text-foreground">Setoran Modal Pemilik Tunai</TableCell>
-                        <TableCell className="text-muted-foreground">1101 Kas Kecil</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="size-1.5 rounded-full bg-teal-500" />
+                            1101 Kas Kecil
+                          </span>
+                        </TableCell>
                         <TableCell className="font-mono text-right tabular-nums font-semibold text-foreground">100.000.000,00</TableCell>
-                        <TableCell className="font-mono text-right tabular-nums text-muted-foreground">0,00</TableCell>
-                        <TableCell className="text-center">
-                          <Badge className="bg-emerald-600 text-white text-[10px] py-0">POSTED</Badge>
+                        <TableCell className="font-mono text-right tabular-nums text-muted-foreground/60">—</TableCell>
+                        <TableCell className="text-center pr-5">
+                          <Badge className="bg-emerald-600/90 text-white text-[10px] font-semibold px-2 py-0 h-5">POSTED</Badge>
                         </TableCell>
                       </TableRow>
-                      <TableRow>
-                        <TableCell className="font-mono font-semibold text-primary">JV-PTM-2026-000002</TableCell>
-                        <TableCell className="font-mono text-muted-foreground">14 Nov 2026</TableCell>
+                      <TableRow className="border-b border-border/20 transition-colors hover:bg-primary/[0.02]">
+                        <TableCell className="font-mono font-semibold text-primary pl-5">JV-PTM-2026-000002</TableCell>
+                        <TableCell className="font-mono text-muted-foreground text-xs">14 Nov 2026</TableCell>
                         <TableCell className="font-medium text-foreground">Pembelian Persediaan Barang Dagang</TableCell>
-                        <TableCell className="text-muted-foreground">1300 Persediaan</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="size-1.5 rounded-full bg-slate-400" />
+                            1300 Persediaan
+                          </span>
+                        </TableCell>
                         <TableCell className="font-mono text-right tabular-nums font-semibold text-foreground">20.000.000,00</TableCell>
-                        <TableCell className="font-mono text-right tabular-nums text-muted-foreground">0,00</TableCell>
-                        <TableCell className="text-center">
-                          <Badge className="bg-emerald-600 text-white text-[10px] py-0">POSTED</Badge>
+                        <TableCell className="font-mono text-right tabular-nums text-muted-foreground/60">—</TableCell>
+                        <TableCell className="text-center pr-5">
+                          <Badge className="bg-emerald-600/90 text-white text-[10px] font-semibold px-2 py-0 h-5">POSTED</Badge>
                         </TableCell>
                       </TableRow>
-                      <TableRow>
-                        <TableCell className="font-mono font-semibold text-primary">JV-PTM-2026-000003</TableCell>
-                        <TableCell className="font-mono text-muted-foreground">15 Nov 2026</TableCell>
+                      <TableRow className="border-b border-border/20 transition-colors hover:bg-primary/[0.02]">
+                        <TableCell className="font-mono font-semibold text-primary pl-5">JV-PTM-2026-000003</TableCell>
+                        <TableCell className="font-mono text-muted-foreground text-xs">15 Nov 2026</TableCell>
                         <TableCell className="font-medium text-foreground">Penjualan Kredit Barang Dagang</TableCell>
-                        <TableCell className="text-muted-foreground">1200 Piutang Usaha</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="size-1.5 rounded-full bg-teal-500" />
+                            1200 Piutang Usaha
+                          </span>
+                        </TableCell>
                         <TableCell className="font-mono text-right tabular-nums font-semibold text-foreground">15.000.000,00</TableCell>
-                        <TableCell className="font-mono text-right tabular-nums text-muted-foreground">0,00</TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant="outline" className="border-teal-500/40 bg-teal-500/10 text-teal-700 dark:text-teal-300 text-[10px] py-0">APPROVED</Badge>
+                        <TableCell className="font-mono text-right tabular-nums text-muted-foreground/60">—</TableCell>
+                        <TableCell className="text-center pr-5">
+                          <Badge variant="outline" className="border-teal-500/40 bg-teal-500/10 text-teal-700 dark:text-teal-300 text-[10px] font-semibold px-2 py-0 h-5">
+                            APPROVED
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow className="border-b-0 transition-colors hover:bg-primary/[0.02]">
+                        <TableCell className="font-mono font-semibold text-primary pl-5">JV-PTM-2026-000004</TableCell>
+                        <TableCell className="font-mono text-muted-foreground text-xs">15 Nov 2026</TableCell>
+                        <TableCell className="font-medium text-foreground">Beban Gaji Staf Operasional</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="size-1.5 rounded-full bg-amber-500" />
+                            6100 Beban Gaji
+                          </span>
+                        </TableCell>
+                        <TableCell className="font-mono text-right tabular-nums font-semibold text-foreground">5.000.000,00</TableCell>
+                        <TableCell className="font-mono text-right tabular-nums text-muted-foreground/60">—</TableCell>
+                        <TableCell className="text-center pr-5">
+                          <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400 text-[10px] font-semibold px-2 py-0 h-5">
+                            DRAFT
+                          </Badge>
                         </TableCell>
                       </TableRow>
                     </TableBody>
                   </Table>
-                </Card>
+                </div>
 
                 {/* Shadcn Pagination Component */}
                 <div className="mt-4">
