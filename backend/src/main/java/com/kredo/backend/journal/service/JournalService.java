@@ -146,4 +146,84 @@ public class JournalService {
         // Format standar: JV-PTM-2026-000001
         return String.format("JV-PTM-%d-%06d", fiscalYear, nextNumber);
     }
+
+    /**
+     * Mengambil detail satu jurnal berdasarkan ID.
+     */
+    public JournalResponse getJournalById(Long entityId, Long id) {
+        JournalEntry journal = journalEntryRepository.findByEntityIdAndId(entityId, id)
+                .orElseThrow(() -> new IllegalArgumentException("Jurnal dengan ID " + id + " tidak ditemukan."));
+        return JournalResponse.fromEntity(journal);
+    }
+
+    /**
+     * Membalik jurnal berstatus POSTED (Reversal Entry).
+     * Membalik posisi Debit dan Kredit untuk menetralkan saldo secara legal.
+     */
+    @Transactional
+    public JournalResponse reverseJournal(Long entityId, Long journalId, String reason) {
+        JournalEntry original = journalEntryRepository.findByEntityIdAndId(entityId, journalId)
+                .orElseThrow(() -> new IllegalArgumentException("Jurnal dengan ID " + journalId + " tidak ditemukan."));
+
+        // Validasi 1: Hanya jurnal POSTED yang boleh dibalik
+        if (original.getStatus() != JournalStatus.POSTED) {
+            throw new IllegalStateException("Hanya jurnal berstatus POSTED yang dapat dibalik.");
+        }
+
+        // Validasi 2: Jurnal pembalik tidak boleh dibalik lagi
+        if (original.getSource() == com.kredo.backend.journal.domain.JournalSource.REVERSAL) {
+            throw new IllegalStateException("Jurnal pembalik tidak dapat dibalik kembali.");
+        }
+
+        // Validasi 3: Cek apakah jurnal ini sudah pernah dibalik sebelumnya
+        if (original.getReversalOfId() != null) {
+            throw new IllegalStateException("Jurnal ini sudah pernah dibalik sebelumnya.");
+        }
+
+        java.time.LocalDate today = java.time.LocalDate.now();
+        String desc = "Pembalik Jurnal " + original.getJournalNo() + ": " +
+                (reason != null && !reason.isBlank() ? reason.trim() : "Koreksi pembukuan transaksi");
+
+        // Buat voucher jurnal baru dengan sumber REVERSAL
+        JournalEntry reversal = new JournalEntry(
+                entityId,
+                original.getPeriodId(),
+                today,
+                desc,
+                com.kredo.backend.journal.domain.JournalSource.REVERSAL,
+                1L // User ID pembalik
+        );
+        reversal.setTotalAmount(original.getTotalAmount());
+        reversal.setReversalOfId(original.getId());
+
+        // LOGIKA PEMBALIKAN: Tukar posisi Debit dan Kredit pada setiap baris!
+        int lineNo = 1;
+        for (JournalLine origLine : original.getLines()) {
+            JournalLine reversedLine = new JournalLine(
+                    entityId,
+                    lineNo++,
+                    origLine.getAccountId(),
+                    origLine.getCredit(), // Nilai Debit baru diambil dari Kredit lama!
+                    origLine.getDebit(), // Nilai Kredit baru diambil dari Debit lama!
+                    "Pembalik baris " + origLine.getLineNo() +
+                            (origLine.getMemo() != null ? " (" + origLine.getMemo() + ")" : ""));
+            reversal.addLine(reversedLine);
+        }
+
+        // Alokasikan nomor resmi baru tanpa celah
+        String newJournalNo = generateGaplessJournalNo(entityId, today.getYear());
+        reversal.setJournalNo(newJournalNo);
+        reversal.setStatus(JournalStatus.POSTED);
+        reversal.setPostedBy(1L);
+        reversal.setPostedAt(java.time.OffsetDateTime.now());
+
+        // Simpan jurnal pembalik ke database
+        JournalEntry savedReversal = journalEntryRepository.save(reversal);
+
+        // Tandai jurnal lama bahwa ia sudah memiliki pembalik
+        original.setReversalOfId(savedReversal.getId());
+        journalEntryRepository.save(original);
+
+        return JournalResponse.fromEntity(savedReversal);
+    }
 }

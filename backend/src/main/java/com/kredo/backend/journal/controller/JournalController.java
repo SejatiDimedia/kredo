@@ -36,4 +36,24 @@ public class JournalController {
         JournalResponse response = journalService.createJournal(entityId, request, post);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    // GET /api/v1/journals/{id}?entityId=1
+    @GetMapping("/{id}")
+    public ResponseEntity<JournalResponse> getJournalById(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "1") Long entityId) {
+        JournalResponse journal = journalService.getJournalById(entityId, id);
+        return ResponseEntity.ok(journal);
+    }
+
+    // POST /api/v1/journals/{id}/reverse?entityId=1
+    @PostMapping("/{id}/reverse")
+    public ResponseEntity<JournalResponse> reverseJournal(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "1") Long entityId,
+            @RequestBody(required = false) com.kredo.backend.journal.dto.ReverseJournalRequest request) {
+        String reason = request != null ? request.reason() : "Koreksi pembukuan";
+        JournalResponse response = journalService.reverseJournal(entityId, id, reason);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 }

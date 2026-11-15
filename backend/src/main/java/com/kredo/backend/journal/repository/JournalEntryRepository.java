@@ -19,4 +19,7 @@ public interface JournalEntryRepository extends JpaRepository<JournalEntry, Long
 
     // Cari jurnal berdasarkan nomor resmi (misal: "JV-PTM-2026-000001")
     Optional<JournalEntry> findByEntityIdAndJournalNo(Long entityId, String journalNo);
+
+    // Cari jurnal berdasarkan ID dan entitas
+    Optional<JournalEntry> findByEntityIdAndId(Long entityId, Long id);
 }

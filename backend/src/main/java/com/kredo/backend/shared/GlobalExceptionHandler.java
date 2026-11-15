@@ -17,9 +17,14 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Menangani error logika bisnis (seperti: "Kode akun sudah ada")
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
+    /**
+     * Menangani error logika bisnis:
+     * - IllegalArgumentException (misal: "Akun ID 999 tidak ditemukan")
+     * - IllegalStateException (misal: "Jurnal ini sudah pernah dibalik sebelumnya"
+     * atau "Status bukan POSTED")
+     */
+    @ExceptionHandler({ IllegalArgumentException.class, IllegalStateException.class })
+    public ResponseEntity<Map<String, Object>> handleBusinessException(RuntimeException ex) {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", Instant.now().toString());
         body.put("status", HttpStatus.BAD_REQUEST.value());
@@ -29,7 +34,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
-    // Menangani error validasi DTO (@NotBlank, @Size, dsb)
+    /**
+     * Menangani error validasi DTO (@NotBlank, @Size, @NotNull, dsb).
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationErrors(MethodArgumentNotValidException ex) {
         Map<String, String> fieldErrors = new HashMap<>();
