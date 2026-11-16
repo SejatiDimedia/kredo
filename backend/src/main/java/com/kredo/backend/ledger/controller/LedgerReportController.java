@@ -6,6 +6,8 @@ import com.kredo.backend.ledger.service.LedgerReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.kredo.backend.ledger.dto.IncomeStatementResponse;
+import com.kredo.backend.ledger.dto.BalanceSheetResponse;
 
 @RestController
 @RequestMapping("/api/v1/reports")
@@ -38,6 +40,30 @@ public class LedgerReportController {
             @RequestParam(defaultValue = "11") Long periodId,
             @RequestParam Long accountId) {
         GeneralLedgerResponse response = ledgerReportService.getGeneralLedger(entityId, periodId, accountId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Endpoint Laporan Laba Rugi (Income Statement)
+     * Contoh: GET /api/v1/reports/income-statement?entityId=1&periodId=11
+     */
+    @GetMapping("/income-statement")
+    public ResponseEntity<IncomeStatementResponse> getIncomeStatement(
+            @RequestParam(defaultValue = "1") Long entityId,
+            @RequestParam(defaultValue = "11") Long periodId) {
+        IncomeStatementResponse response = ledgerReportService.getIncomeStatement(entityId, periodId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Endpoint Laporan Neraca (Balance Sheet)
+     * Contoh: GET /api/v1/reports/balance-sheet?entityId=1&periodId=11
+     */
+    @GetMapping("/balance-sheet")
+    public ResponseEntity<BalanceSheetResponse> getBalanceSheet(
+            @RequestParam(defaultValue = "1") Long entityId,
+            @RequestParam(defaultValue = "11") Long periodId) {
+        BalanceSheetResponse response = ledgerReportService.getBalanceSheet(entityId, periodId);
         return ResponseEntity.ok(response);
     }
 }

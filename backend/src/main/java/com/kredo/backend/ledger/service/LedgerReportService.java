@@ -14,6 +14,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.kredo.backend.ledger.dto.IncomeStatementResponse;
+import com.kredo.backend.ledger.dto.IncomeStatementResponse.IncomeStatementRow;
+import com.kredo.backend.ledger.dto.BalanceSheetResponse;
+import com.kredo.backend.ledger.dto.BalanceSheetResponse.BalanceSheetRow;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -205,5 +209,167 @@ public class LedgerReportService {
             String memo,
             BigDecimal debit,
             BigDecimal credit) {
+    }
+
+    /**
+     * Menghasilkan Laporan Laba Rugi (Income Statement) periode berjalan.
+     * Pendapatan (Credit - Debit) - Beban (Debit - Credit) = Laba Bersih.
+     */
+    public IncomeStatementResponse getIncomeStatement(Long entityId, Long periodId) {
+        AccountingPeriod period = accountingPeriodRepository.findByEntityIdAndId(entityId, periodId)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("Periode akuntansi tidak ditemukan untuk entitas ini."));
+
+        String sql = """
+                SELECT
+                    a.id AS account_id,
+                    a.code AS account_code,
+                    a.name AS account_name,
+                    a.type AS account_type,
+                    a.report_group AS report_group,
+                    COALESCE(ab.debit_total, 0) AS debit_total,
+                    COALESCE(ab.credit_total, 0) AS credit_total
+                FROM account a
+                LEFT JOIN account_balance ab ON ab.account_id = a.id AND ab.period_id = ?
+                WHERE a.entity_id = ? AND a.is_postable = true AND a.type IN ('REVENUE', 'EXPENSE')
+                ORDER BY a.code ASC
+                """;
+
+        List<IncomeStatementRow> revenues = new ArrayList<>();
+        List<IncomeStatementRow> expenses = new ArrayList<>();
+        BigDecimal totalRevenue = BigDecimal.ZERO;
+        BigDecimal totalExpense = BigDecimal.ZERO;
+
+        List<RawIncomeRow> rows = jdbcTemplate.query(sql, (rs, rowNum) -> new RawIncomeRow(
+                rs.getLong("account_id"),
+                rs.getString("account_code"),
+                rs.getString("account_name"),
+                AccountType.valueOf(rs.getString("account_type")),
+                rs.getString("report_group"),
+                rs.getBigDecimal("debit_total"),
+                rs.getBigDecimal("credit_total")), periodId, entityId);
+
+        for (RawIncomeRow r : rows) {
+            if (r.type() == AccountType.REVENUE) {
+                BigDecimal netAmount = r.creditTotal().subtract(r.debitTotal());
+                revenues.add(new IncomeStatementRow(r.accountId(), r.code(), r.name(), r.type(), r.reportGroup(),
+                        netAmount));
+                totalRevenue = totalRevenue.add(netAmount);
+            } else if (r.type() == AccountType.EXPENSE) {
+                BigDecimal netAmount = r.debitTotal().subtract(r.creditTotal());
+                expenses.add(new IncomeStatementRow(r.accountId(), r.code(), r.name(), r.type(), r.reportGroup(),
+                        netAmount));
+                totalExpense = totalExpense.add(netAmount);
+            }
+        }
+
+        BigDecimal netIncome = totalRevenue.subtract(totalExpense);
+        boolean isProfitable = netIncome.compareTo(BigDecimal.ZERO) >= 0;
+
+        return new IncomeStatementResponse(
+                entityId,
+                period.getId(),
+                period.getPeriodNo(),
+                period.getStartDate().getYear(),
+                revenues,
+                totalRevenue,
+                expenses,
+                totalExpense,
+                netIncome,
+                isProfitable);
+    }
+
+    /**
+     * Menghasilkan Laporan Neraca (Balance Sheet).
+     * Aset = Liabilitas + Ekuitas + Laba Periode Berjalan.
+     */
+    public BalanceSheetResponse getBalanceSheet(Long entityId, Long periodId) {
+        AccountingPeriod period = accountingPeriodRepository.findByEntityIdAndId(entityId, periodId)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("Periode akuntansi tidak ditemukan untuk entitas ini."));
+
+        // 1. Ambil Laba Berjalan dari Laba Rugi
+        IncomeStatementResponse incomeStatement = getIncomeStatement(entityId, periodId);
+        BigDecimal currentPeriodEarnings = incomeStatement.netIncome();
+
+        // 2. Query Akun Riil (ASSET, LIABILITY, EQUITY)
+        String sql = """
+                SELECT
+                    a.id AS account_id,
+                    a.code AS account_code,
+                    a.name AS account_name,
+                    a.type AS account_type,
+                    a.report_group AS report_group,
+                    COALESCE(ab.debit_total, 0) AS debit_total,
+                    COALESCE(ab.credit_total, 0) AS credit_total
+                FROM account a
+                LEFT JOIN account_balance ab ON ab.account_id = a.id AND ab.period_id = ?
+                WHERE a.entity_id = ? AND a.is_postable = true AND a.type IN ('ASSET', 'LIABILITY', 'EQUITY')
+                ORDER BY a.code ASC
+                """;
+
+        List<BalanceSheetRow> assets = new ArrayList<>();
+        List<BalanceSheetRow> liabilities = new ArrayList<>();
+        List<BalanceSheetRow> equities = new ArrayList<>();
+
+        BigDecimal totalAsset = BigDecimal.ZERO;
+        BigDecimal totalLiability = BigDecimal.ZERO;
+        BigDecimal totalEquity = BigDecimal.ZERO;
+
+        List<RawIncomeRow> rows = jdbcTemplate.query(sql, (rs, rowNum) -> new RawIncomeRow(
+                rs.getLong("account_id"),
+                rs.getString("account_code"),
+                rs.getString("account_name"),
+                AccountType.valueOf(rs.getString("account_type")),
+                rs.getString("report_group"),
+                rs.getBigDecimal("debit_total"),
+                rs.getBigDecimal("credit_total")), periodId, entityId);
+
+        for (RawIncomeRow r : rows) {
+            if (r.type() == AccountType.ASSET) {
+                BigDecimal netAmount = r.debitTotal().subtract(r.creditTotal());
+                assets.add(
+                        new BalanceSheetRow(r.accountId(), r.code(), r.name(), r.type(), r.reportGroup(), netAmount));
+                totalAsset = totalAsset.add(netAmount);
+            } else if (r.type() == AccountType.LIABILITY) {
+                BigDecimal netAmount = r.creditTotal().subtract(r.debitTotal());
+                liabilities.add(
+                        new BalanceSheetRow(r.accountId(), r.code(), r.name(), r.type(), r.reportGroup(), netAmount));
+                totalLiability = totalLiability.add(netAmount);
+            } else if (r.type() == AccountType.EQUITY) {
+                BigDecimal netAmount = r.creditTotal().subtract(r.debitTotal());
+                equities.add(
+                        new BalanceSheetRow(r.accountId(), r.code(), r.name(), r.type(), r.reportGroup(), netAmount));
+                totalEquity = totalEquity.add(netAmount);
+            }
+        }
+
+        BigDecimal totalLiabilitiesAndEquity = totalLiability.add(totalEquity).add(currentPeriodEarnings);
+        boolean isBalanced = totalAsset.compareTo(totalLiabilitiesAndEquity) == 0;
+
+        return new BalanceSheetResponse(
+                entityId,
+                period.getId(),
+                period.getPeriodNo(),
+                period.getStartDate().getYear(),
+                assets,
+                totalAsset,
+                liabilities,
+                totalLiability,
+                equities,
+                totalEquity,
+                currentPeriodEarnings,
+                totalLiabilitiesAndEquity,
+                isBalanced);
+    }
+
+    private record RawIncomeRow(
+            Long accountId,
+            String code,
+            String name,
+            AccountType type,
+            String reportGroup,
+            BigDecimal debitTotal,
+            BigDecimal creditTotal) {
     }
 }
