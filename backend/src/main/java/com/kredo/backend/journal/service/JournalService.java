@@ -11,6 +11,7 @@ import com.kredo.backend.journal.dto.JournalResponse;
 import com.kredo.backend.journal.repository.JournalEntryRepository;
 import com.kredo.backend.period.domain.AccountingPeriod;
 import com.kredo.backend.period.repository.AccountingPeriodRepository;
+import com.kredo.backend.ledger.service.AccountBalanceService;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,15 +30,18 @@ public class JournalService {
     private final JournalEntryRepository journalEntryRepository;
     private final AccountRepository accountRepository;
     private final AccountingPeriodRepository accountingPeriodRepository;
+    private final AccountBalanceService accountBalanceService;
     private final JdbcTemplate jdbcTemplate;
 
     public JournalService(JournalEntryRepository journalEntryRepository,
             AccountRepository accountRepository,
             AccountingPeriodRepository accountingPeriodRepository,
+            AccountBalanceService accountBalanceService,
             JdbcTemplate jdbcTemplate) {
         this.journalEntryRepository = journalEntryRepository;
         this.accountRepository = accountRepository;
         this.accountingPeriodRepository = accountingPeriodRepository;
+        this.accountBalanceService = accountBalanceService;
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -167,11 +171,17 @@ public class JournalService {
 
         // 6. Simpan ke database (Cascade otomatis menyimpan Header dan seluruh Lines)
         JournalEntry saved = journalEntryRepository.save(journal);
+
+        // 7. Jika diposting langsung, perbarui saldo rekening otomatis
+        if (postImmediately) {
+            accountBalanceService.updateBalancesForJournal(saved);
+        }
+
         return JournalResponse.fromEntity(saved);
     }
 
     /**
-     * Menghasilkan nomor jurnal resmi berurutan tanpa celah (INV-07).
+     * Menghasilkan nomor jurnal resmi berurutan tanpa celah.
      * Menggunakan Row-Level Lock (FOR UPDATE) pada tabel journal_sequence di
      * PostgreSQL.
      */
@@ -223,7 +233,6 @@ public class JournalService {
         LocalDate today = LocalDate.now();
 
         // Validasi 4: Pastikan tanggal pembalikan hari ini berada di periode yang OPEN
-        // (INV-08)
         AccountingPeriod currentPeriod = accountingPeriodRepository.findPeriodByDate(entityId, today)
                 .orElseThrow(() -> new IllegalStateException(
                         "Tidak ada periode akuntansi terbuka untuk tanggal pembalikan: " + today));
@@ -276,6 +285,9 @@ public class JournalService {
         // Tandai jurnal lama bahwa ia sudah memiliki pembalik
         original.setReversalOfId(savedReversal.getId());
         journalEntryRepository.save(original);
+
+        // Perbarui saldo rekening untuk jurnal pembalik
+        accountBalanceService.updateBalancesForJournal(savedReversal);
 
         return JournalResponse.fromEntity(savedReversal);
     }
