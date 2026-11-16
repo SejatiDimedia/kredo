@@ -26,69 +26,74 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
-import { Lock, Unlock, CheckCircle2, ShieldCheck } from "lucide-react"
+import { Lock, Unlock, ShieldCheck, Loader2, RefreshCw } from "lucide-react"
+import { apiFetch } from "@/lib/api"
 
-interface AccountingPeriod {
-  id: string
-  periodCode: string
+interface PeriodResponse {
+  id: number
+  entityId: number
+  periodNo: number
+  fiscalYear: number
   name: string
   startDate: string
   endDate: string
-  status: "OPEN" | "CLOSED" | "FUTURE"
-  isBalanced: boolean
-  closedBy?: string
-  closedAt?: string
+  status: "OPEN" | "CLOSED" | "LOCKED"
+  closedAt: string | null
+  closedBy: number | null
 }
 
-const INITIAL_PERIODS: AccountingPeriod[] = [
-  {
-    id: "1",
-    periodCode: "PER-2026-10",
-    name: "Oktober 2026",
-    startDate: "01 Okt 2026",
-    endDate: "31 Okt 2026",
-    status: "CLOSED",
-    isBalanced: true,
-    closedBy: "Maya Siregar (Controller)",
-    closedAt: "31 Okt 2026 23:59",
-  },
-  {
-    id: "2",
-    periodCode: "PER-2026-11",
-    name: "November 2026 (Aktif)",
-    startDate: "01 Nov 2026",
-    endDate: "30 Nov 2026",
-    status: "OPEN",
-    isBalanced: true,
-  },
-  {
-    id: "3",
-    periodCode: "PER-2026-12",
-    name: "Desember 2026",
-    startDate: "01 Des 2026",
-    endDate: "31 Des 2026",
-    status: "FUTURE",
-    isBalanced: true,
-  },
-]
-
 export function PeriodsPage() {
-  const [periods, setPeriods] = React.useState<AccountingPeriod[]>(INITIAL_PERIODS)
+  const [periods, setPeriods] = React.useState<PeriodResponse[]>([])
+  const [isLoading, setIsLoading] = React.useState(true)
+  const [processingPeriodId, setProcessingPeriodId] = React.useState<number | null>(null)
 
-  const handleToggleClose = (periodCode: string) => {
-    setPeriods(prev => prev.map(p => {
-      if (p.periodCode === periodCode) {
-        const nextStatus = p.status === "OPEN" ? "CLOSED" : "OPEN"
-        toast.success(`Status periode ${p.name} diubah menjadi: ${nextStatus}`)
-        return {
-          ...p,
-          status: nextStatus,
-          closedBy: nextStatus === "CLOSED" ? "Maya Siregar (Controller)" : undefined,
-          closedAt: nextStatus === "CLOSED" ? "15 Nov 2026 09:30" : undefined,
-        }
-      }
-      return p
-    }))
+  const loadPeriods = React.useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const data = await apiFetch<PeriodResponse[]>("/periods?entityId=1")
+      setPeriods(data)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal memuat daftar periode akuntansi")
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    loadPeriods()
+  }, [loadPeriods])
+
+  // Aksi Tutup Buku
+  const handleClosePeriod = async (period: PeriodResponse) => {
+    try {
+      setProcessingPeriodId(period.id)
+      await apiFetch<PeriodResponse>(`/periods/${period.id}/close?entityId=1&userId=3`, {
+        method: "POST",
+      })
+      toast.success(`Tutup buku sukses: Periode ${period.name} kini berstatus CLOSED. Transaksi baru dikunci!`)
+      await loadPeriods()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal menutup periode akuntansi")
+    } finally {
+      setProcessingPeriodId(null)
+    }
+  }
+
+  // Aksi Buka Kembali Periode
+  const handleReopenPeriod = async (period: PeriodResponse) => {
+    try {
+      setProcessingPeriodId(period.id)
+      await apiFetch<PeriodResponse>(
+        `/periods/${period.id}/reopen?entityId=1&userId=3&reason=Penyesuaian+audit+laporan+keuangan`,
+        { method: "POST" }
+      )
+      toast.success(`Periode ${period.name} berhasil dibuka kembali (OPEN).`)
+      await loadPeriods()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal membuka kembali periode")
+    } finally {
+      setProcessingPeriodId(null)
+    }
   }
 
   return (
@@ -113,17 +118,23 @@ export function PeriodsPage() {
             Periode Akuntansi & Tutup Buku
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Pengelolaan tahun fiskal 2026. Periode CLOSED dilindungi PostgreSQL Row Lock agar tidak menerima posting.
+            Pengelolaan tahun fiskal 2026. Periode CLOSED dilindungi PostgreSQL Row Lock agar tidak menerima posting jurnal baru.
           </p>
         </div>
+        <Button variant="outline" size="sm" onClick={loadPeriods} disabled={isLoading}>
+          <RefreshCw className={`size-3.5 mr-1.5 ${isLoading ? "animate-spin" : ""}`} />
+          Segarkan Data
+        </Button>
       </div>
 
       {/* Accounting Notice Alert */}
       <Alert className="border-border/60 bg-muted/20">
         <ShieldCheck className="size-4 text-primary" />
-        <AlertTitle className="text-xs font-semibold">Aturan Tutup Buku</AlertTitle>
+        <AlertTitle className="text-xs font-semibold">Aturan Integritas Tutup Buku (Month-End Close)</AlertTitle>
         <AlertDescription className="text-xs text-muted-foreground">
-          Sistem secara otomatis menolak posting jurnal baru pada periode yang berstatus <code>CLOSED</code>. Pembukaan kembali periode tertutup membutuhkan otorisasi Financial Controller dan dicatat pada jejak audit.
+          Sistem secara otomatis menolak posting jurnal baru pada periode yang berstatus <code>CLOSED</code>.
+          Prasyarat tutup buku: <strong>tidak ada jurnal gantung (Draft/Submitted/Approved)</strong> dan <strong>Neraca Saldo wajib seimbang</strong>.
+          Pembukaan kembali periode tertutup membutuhkan otorisasi Financial Controller dan dicatat pada jejak audit.
         </AlertDescription>
       </Alert>
 
@@ -132,7 +143,7 @@ export function PeriodsPage() {
         <CardHeader className="border-b border-border/30 pb-4">
           <CardTitle className="text-base font-semibold">Daftar Periode Buku Besar 2026</CardTitle>
           <CardDescription className="text-xs">
-            Hanya ada satu periode terbuka (OPEN) yang dapat menerima mutasi jurnal harian.
+            Hanya periode berstatus <code>OPEN</code> yang diizinkan menerima mutasi jurnal harian.
           </CardDescription>
         </CardHeader>
 
@@ -140,88 +151,114 @@ export function PeriodsPage() {
           <Table>
             <TableHeader>
               <TableRow className="border-b border-border/30 bg-muted/10 hover:bg-muted/10">
-                <TableHead className="w-[140px] pl-6 font-semibold">Kode Periode</TableHead>
+                <TableHead className="w-[120px] pl-6 font-semibold">No. Bulan</TableHead>
                 <TableHead className="font-semibold">Nama Periode</TableHead>
-                <TableHead className="w-[200px] font-semibold">Rentang Tanggal</TableHead>
+                <TableHead className="w-[220px] font-semibold">Rentang Tanggal</TableHead>
                 <TableHead className="w-[140px] text-center font-semibold">Status Periode</TableHead>
-                <TableHead className="w-[180px] text-center font-semibold">Neraca Saldo</TableHead>
+                <TableHead className="w-[180px] font-semibold text-center">Info Penutupan</TableHead>
                 <TableHead className="w-[160px] text-center pr-6 font-semibold">Aksi Controller</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {periods.map((period) => (
-                <TableRow
-                  key={period.periodCode}
-                  className={`border-b border-border/20 transition-colors ${
-                    period.status === "OPEN" ? "bg-muted/10 hover:bg-muted/15" : "hover:bg-muted/10"
-                  }`}
-                >
-                  <TableCell className="font-mono text-xs pl-6 font-semibold text-primary py-3">
-                    {period.periodCode}
-                  </TableCell>
-                  <TableCell className="text-xs font-medium py-3">
-                    {period.name}
-                    {period.closedBy && (
-                      <div className="text-[10px] text-muted-foreground mt-0.5">
-                        Ditutup oleh: {period.closedBy}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground font-mono py-3">
-                    {period.startDate} – {period.endDate}
-                  </TableCell>
-                  <TableCell className="text-center py-3">
-                    {period.status === "OPEN" && (
-                      <Badge variant="secondary" className="gap-1 font-semibold text-xs text-teal-700 dark:text-teal-300">
-                        <Unlock className="size-3" />
-                        OPEN
-                      </Badge>
-                    )}
-                    {period.status === "CLOSED" && (
-                      <Badge variant="outline" className="gap-1 font-normal text-xs text-muted-foreground">
-                        <Lock className="size-3" />
-                        CLOSED
-                      </Badge>
-                    )}
-                    {period.status === "FUTURE" && (
-                      <Badge variant="outline" className="text-xs text-muted-foreground border-dashed">
-                        FUTURE
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-center py-3 text-xs">
-                    <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-medium">
-                      <CheckCircle2 className="size-3.5" />
-                      Seimbang (0 Selisih)
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-center pr-6 py-3">
-                    {period.status === "OPEN" ? (
-                      <Button
-                        size="xs"
-                        variant="outline"
-                        className="text-xs"
-                        onClick={() => handleToggleClose(period.periodCode)}
-                      >
-                        <Lock className="size-3 mr-1" />
-                        Tutup Buku
-                      </Button>
-                    ) : period.status === "CLOSED" ? (
-                      <Button
-                        size="xs"
-                        variant="ghost"
-                        className="text-xs"
-                        onClick={() => handleToggleClose(period.periodCode)}
-                      >
-                        <Unlock className="size-3 mr-1" />
-                        Buka Kembali
-                      </Button>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    )}
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="py-12 text-center text-muted-foreground">
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="size-4 animate-spin text-primary" />
+                      <span>Memuat status periode akuntansi...</span>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : periods.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                    Tidak ada periode akuntansi ditemukan.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                periods.map((period) => (
+                  <TableRow
+                    key={period.id}
+                    className={`border-b border-border/20 transition-colors ${
+                      period.status === "OPEN" ? "bg-muted/10 hover:bg-muted/15" : "hover:bg-muted/10"
+                    }`}
+                  >
+                    <TableCell className="font-mono text-xs pl-6 font-semibold text-primary py-3">
+                      Bulan {period.periodNo}
+                    </TableCell>
+                    <TableCell className="text-xs font-medium py-3">
+                      <span className="font-semibold text-foreground">{period.name}</span>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground font-mono py-3">
+                      {period.startDate} s/d {period.endDate}
+                    </TableCell>
+                    <TableCell className="text-center py-3">
+                      {period.status === "OPEN" && (
+                        <Badge variant="secondary" className="gap-1 font-semibold text-xs text-teal-700 dark:text-teal-300">
+                          <Unlock className="size-3" />
+                          OPEN
+                        </Badge>
+                      )}
+                      {period.status === "CLOSED" && (
+                        <Badge variant="outline" className="gap-1 font-normal text-xs text-muted-foreground">
+                          <Lock className="size-3" />
+                          CLOSED
+                        </Badge>
+                      )}
+                      {period.status === "LOCKED" && (
+                        <Badge variant="destructive" className="gap-1 text-xs">
+                          <Lock className="size-3" />
+                          LOCKED
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center py-3 text-xs text-muted-foreground">
+                      {period.closedAt ? (
+                        <span className="text-[11px]">
+                          Ditutup {new Date(period.closedAt).toLocaleDateString("id-ID")}
+                        </span>
+                      ) : (
+                        <span>—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center pr-6 py-3">
+                      {period.status === "OPEN" ? (
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          className="text-xs cursor-pointer border-destructive/30 hover:bg-destructive/10 hover:text-destructive text-foreground"
+                          disabled={processingPeriodId === period.id}
+                          onClick={() => handleClosePeriod(period)}
+                        >
+                          {processingPeriodId === period.id ? (
+                            <Loader2 className="size-3 mr-1 animate-spin" />
+                          ) : (
+                            <Lock className="size-3 mr-1 text-destructive" />
+                          )}
+                          Tutup Buku
+                        </Button>
+                      ) : period.status === "CLOSED" ? (
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          className="text-xs cursor-pointer text-primary hover:bg-primary/10"
+                          disabled={processingPeriodId === period.id}
+                          onClick={() => handleReopenPeriod(period)}
+                        >
+                          {processingPeriodId === period.id ? (
+                            <Loader2 className="size-3 mr-1 animate-spin" />
+                          ) : (
+                            <Unlock className="size-3 mr-1 text-primary" />
+                          )}
+                          Buka Kembali
+                        </Button>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
