@@ -161,7 +161,7 @@ export function JournalEditorPage() {
     setLines((prev) => prev.filter((l) => l.id !== id))
   }
 
-  // Input Debit otomatis mengosongkan Kredit pada baris yang sama (INV-04)
+  // Input Debit otomatis mengosongkan Kredit pada baris yang sama
   const handleDebitChange = (id: string, val: string) => {
     setLines((prev) =>
       prev.map((l) => {
@@ -177,7 +177,7 @@ export function JournalEditorPage() {
     )
   }
 
-  // Input Kredit otomatis mengosongkan Debit pada baris yang sama (INV-04)
+  // Input Kredit otomatis mengosongkan Debit pada baris yang sama
   const handleCreditChange = (id: string, val: string) => {
     setLines((prev) =>
       prev.map((l) => {
@@ -219,7 +219,7 @@ export function JournalEditorPage() {
     }
 
     if (!totalDebit.equals(totalCredit) || totalDebit.isZero()) {
-      toast.error("Jurnal tidak seimbang. Total debit wajib sama persis dengan total kredit (INV-01).")
+      toast.error("Jurnal tidak seimbang. Total debit wajib sama persis dengan total kredit.")
       return false
     }
 
@@ -341,7 +341,7 @@ export function JournalEditorPage() {
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground mt-0.5 ml-9">
-            Masukkan baris transaksi debit dan kredit. Aturan Invariant INV-01 mengharuskan nilai total debit sama persis dengan total kredit.
+            Masukkan baris transaksi debit dan kredit. Nilai total debit harus sama persis dengan total kredit.
           </p>
         </div>
       </div>
@@ -373,7 +373,7 @@ export function JournalEditorPage() {
               <FieldLabel htmlFor="reference">No. Referensi Bukti (Opsional)</FieldLabel>
               <Input
                 id="reference"
-                placeholder="Contoh: INV-2026-0881 / BKK-012"
+                placeholder="Contoh: REF-2026-0881 / BKK-012"
                 value={reference}
                 onChange={(e) => setReference(e.target.value)}
                 className="text-xs h-9 font-mono"

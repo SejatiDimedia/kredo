@@ -83,7 +83,7 @@ export function ReportsPage() {
             <CardHeader className="border-b border-border/30 pb-3">
               <CardTitle className="text-base font-semibold">Neraca Saldo (Trial Balance)</CardTitle>
               <CardDescription className="text-xs">
-                Per 15 November 2026 • Validasi Invariant Keseimbangan (INV-01)
+                Per 15 November 2026 • Status Keseimbangan Terverifikasi
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
@@ -148,7 +148,7 @@ export function ReportsPage() {
                     <TableCell className="text-right pr-6 font-bold text-xs font-mono py-3"><MoneyText amount="20000000" /></TableCell>
                   </TableRow>
                   <TableRow className="border-t-2 border-border/60 bg-muted/20 font-bold">
-                    <TableCell colSpan={3} className="pl-6 text-foreground text-xs py-3">TOTAL KESEIMBANGAN (INV-01)</TableCell>
+                    <TableCell colSpan={3} className="pl-6 text-foreground text-xs py-3">TOTAL KESEIMBANGAN</TableCell>
                     <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="135000000" className="font-bold text-foreground" /></TableCell>
                     <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="135000000" className="font-bold text-foreground" /></TableCell>
                     <TableCell className="text-right pr-6 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs py-3">
@@ -190,7 +190,7 @@ export function ReportsPage() {
           <Card>
             <CardHeader className="border-b border-border/30 pb-3">
               <CardTitle className="text-base font-semibold">Neraca Keuangan (Balance Sheet)</CardTitle>
-              <CardDescription className="text-xs">Posisi per 15 November 2026 • Invariant: Aset = Liabilitas + Ekuitas</CardDescription>
+              <CardDescription className="text-xs">Posisi per 15 November 2026 • Persamaan Akuntansi: Aset = Liabilitas + Ekuitas</CardDescription>
             </CardHeader>
             <CardContent className="pt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">

@@ -11,15 +11,14 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record CreateJournalRequest(
-        @NotNull(message = "Tanggal transaksi wajib diisi") LocalDate entryDate,
+                @NotNull(message = "Tanggal transaksi wajib diisi") LocalDate entryDate,
 
-        @NotBlank(message = "Keterangan/deskripsi transaksi wajib diisi") @Size(max = 500, message = "Deskripsi maksimal 500 karakter") String description,
+                @NotBlank(message = "Keterangan/deskripsi transaksi wajib diisi") @Size(max = 500, message = "Deskripsi maksimal 500 karakter") String description,
 
-        Long periodId,
+                Long periodId,
 
-        JournalSource source,
+                JournalSource source,
 
-        // Minimal harus ada 2 baris (1 Debit dan 1 Kredit) sesuai kaidah akuntansi
-        // INV-02
-        @NotEmpty(message = "Baris jurnal tidak boleh kosong") @Size(min = 2, message = "Jurnal harus memiliki minimal 2 baris (Debit & Kredit)") @Valid List<CreateJournalLineRequest> lines) {
+                // Minimal harus ada 2 baris (1 Debit dan 1 Kredit) sesuai kaidah akuntansi
+                @NotEmpty(message = "Baris jurnal tidak boleh kosong") @Size(min = 2, message = "Jurnal harus memiliki minimal 2 baris (Debit & Kredit)") @Valid List<CreateJournalLineRequest> lines) {
 }

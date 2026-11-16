@@ -487,10 +487,10 @@ export function CoaPage() {
         </div>
       </div>
 
-      {/* Accounting Notice (Strict Invariant INV-04) */}
+      {/* Accounting Notice */}
       <Alert className="border-border/60 bg-muted/20">
         <Info className="size-4 text-primary" />
-        <AlertTitle className="text-xs font-semibold">Aturan Integritas Buku Besar (INV-04)</AlertTitle>
+        <AlertTitle className="text-xs font-semibold">Aturan Integritas Buku Besar</AlertTitle>
         <AlertDescription className="text-xs text-muted-foreground">
           Akun Induk bertanda <strong>Header</strong> hanya berfungsi mengelompokkan saldo laporan dan dilarang digunakan dalam jurnal langsung. Seluruh transaksi wajib dibukukan ke akun <strong>Postable</strong>.
         </AlertDescription>

@@ -95,7 +95,7 @@ export function ApprovalsPage() {
       })
       toast.error("Peringatan: Sistem mengizinkan approval (harusnya ditolak)!")
     } catch (err: any) {
-      // Harusnya ditolak oleh backend (INV-06)
+      // Harusnya ditolak oleh backend
       toast.error(`Sistem Menolak : ${err.message}`, {
         duration: 5000,
       })
@@ -172,12 +172,12 @@ export function ApprovalsPage() {
         </Button>
       </div>
 
-      {/* Segregation of Duties Alert (INV-06) */}
+      {/* Segregation of Duties Alert */}
       <Alert className="border-border/60 bg-muted/20">
         <ShieldAlert className="size-4 text-primary" />
-        <AlertTitle className="text-xs font-semibold">Aturan Invariant Keamanan INV-06 (Segregation of Duties)</AlertTitle>
+        <AlertTitle className="text-xs font-semibold">Aturan Keamanan Pembukuan (Segregation of Duties)</AlertTitle>
         <AlertDescription className="text-xs text-muted-foreground">
-          Pengguna yang membuat/mengajukan jurnal (Maker) dilarang keras menyetujui jurnalnya sendiri. Anda dapat mencoba tombol &quot;Uji Fraud&quot; untuk membuktikan penolakan otomatis dari backend.
+          Pengguna yang membuat/mengajukan jurnal (Maker) dilarang menyetujui jurnalnya sendiri. Anda dapat mencoba tombol &quot;Uji Fraud&quot; untuk membuktikan penolakan otomatis dari backend.
         </AlertDescription>
       </Alert>
 
@@ -261,7 +261,7 @@ export function ApprovalsPage() {
                           size="xs"
                           variant="ghost"
                           className="text-[10px] text-amber-700 dark:text-amber-400 hover:bg-amber-500/10"
-                          title="Coba setujui sebagai pembuat sendiri untuk menguji penolakan INV-06"
+                          title="Coba setujui sebagai pembuat sendiri untuk menguji sistem penolakan"
                           onClick={() => handleTestFraud(draft)}
                           disabled={approvingId === draft.id}
                         >

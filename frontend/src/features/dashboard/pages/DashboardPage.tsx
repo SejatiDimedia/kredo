@@ -79,11 +79,11 @@ export function DashboardPage() {
         </div>
       </div>
 
-      {/* Ledger Integrity Alert (INV-01) */}
+      {/* Ledger Integrity Alert */}
       <Alert className="border-teal-500/30 bg-teal-500/5">
         <CheckCircle2 className="size-4 text-teal-700 dark:text-teal-400" />
         <AlertTitle className="text-xs font-semibold text-foreground">
-          Integritas Neraca Saldo Terverifikasi (INV-01)
+          Integritas Neraca Saldo Terverifikasi
         </AlertTitle>
         <AlertDescription className="text-xs text-muted-foreground">
           Seluruh jurnal berstatus <code>POSTED</code> berada dalam keseimbangan sempurna. Total Debit (Rp 1.485.000.000,00) = Total Kredit (Rp 1.485.000.000,00) dengan variansi selisih 0,00.
@@ -211,7 +211,7 @@ export function DashboardPage() {
 
       {/* Two Column Section: Maker-Checker Queue & Recent Journal Entries */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Column 1: Approval Queue (Maker-Checker INV-06) */}
+        {/* Column 1: Approval Queue (Maker-Checker) */}
         <Card>
           <CardHeader className="border-b border-border/30 pb-3">
             <div className="flex items-center justify-between">
@@ -223,7 +223,7 @@ export function DashboardPage() {
                   </Badge>
                 </div>
                 <CardDescription className="text-xs">
-                  Sesuai Invariant INV-06: Pembuat dilarang menyetujui jurnal sendiri.
+                  Prinsip Pemisahan Tugas: Pembuat dilarang menyetujui jurnal sendiri.
                 </CardDescription>
               </div>
               <CardAction>

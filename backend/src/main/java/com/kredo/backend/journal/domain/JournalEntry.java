@@ -33,7 +33,7 @@ public class JournalEntry {
     private Long periodId;
 
     @Column(name = "journal_no", length = 40)
-    private String journalNo; // Bernilai null saat DRAFT, dialokasikan saat POSTED (INV-07)
+    private String journalNo; // Bernilai null saat DRAFT, dialokasikan saat POSTED
 
     @Column(name = "entry_date", nullable = false)
     private LocalDate entryDate;

@@ -271,7 +271,7 @@ export function DesignSystemPage() {
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Accordion & Progress</h3>
             <Accordion type="single" collapsible defaultValue="a1">
               <AccordionItem value="a1">
-                <AccordionTrigger>Aturan Keseimbangan Jurnal (INV-01)</AccordionTrigger>
+                <AccordionTrigger>Aturan Keseimbangan Jurnal</AccordionTrigger>
                 <AccordionContent className="text-xs text-muted-foreground">
                   Σ debit harus sama persis dengan Σ kredit di setiap baris jurnal.
                 </AccordionContent>

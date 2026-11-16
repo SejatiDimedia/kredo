@@ -14,6 +14,7 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
+  SidebarRail,
   SidebarInset,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
@@ -45,7 +46,7 @@ import {
   Building2,
   ChevronDown,
   Check,
-  LogOut
+  LogOut,
 } from "lucide-react"
 
 export function AppShell() {
@@ -68,16 +69,16 @@ export function AppShell() {
         {/* Accounting Sidebar */}
         <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
           {/* Sidebar Header: Brand Logo */}
-          <SidebarHeader className="border-b border-sidebar-border p-3">
-            <div className="flex items-center gap-2.5">
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-white text-primary font-bold shadow-xs">
-                <Scale className="size-4" />
+          <SidebarHeader className="border-b border-sidebar-border h-14 p-0 flex items-center justify-center">
+            <div className="flex items-center gap-2.5 w-full px-3 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-sidebar font-bold shadow-xs">
+                <Scale className="size-4.5 text-[#0a5c6e]" />
               </div>
-              <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-                <span className="font-semibold text-sm tracking-tight text-sidebar-foreground">
+              <div className="flex flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
+                <span className="font-semibold text-sm tracking-tight text-sidebar-foreground truncate">
                   Kredo Accounting
                 </span>
-                <span className="text-[11px] text-sidebar-foreground/75">
+                <span className="text-[10px] text-sidebar-foreground/75 truncate">
                   General Ledger Core
                 </span>
               </div>
@@ -85,56 +86,81 @@ export function AppShell() {
           </SidebarHeader>
 
           {/* Navigation Groups */}
-          <SidebarContent className="px-2 py-3 space-y-4">
+          <SidebarContent className="px-2 py-3 space-y-3 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-2 group-data-[collapsible=icon]:space-y-2">
             {/* Group 1: Inti Buku Besar */}
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/70 px-2">
+            <SidebarGroup className="p-0 group-data-[collapsible=icon]:p-0">
+              <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/70 px-2 h-7 group-data-[collapsible=icon]:hidden">
                 Buku Besar
               </SidebarGroupLabel>
               <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={location.pathname === "/"}>
-                      <NavLink to="/" className="flex items-center gap-2.5">
-                        <LayoutDashboard className="size-4" />
-                        <span>Dashboard</span>
+                <SidebarMenu className="gap-1 group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:items-center">
+                  <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === "/"}
+                      tooltip="Dashboard Ringkasan"
+                      className="group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
+                    >
+                      <NavLink to="/" className="flex items-center gap-2.5 w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:size-full">
+                        <LayoutDashboard className="size-4 shrink-0" />
+                        <span className="group-data-[collapsible=icon]:hidden">Dashboard</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
 
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={location.pathname === "/accounts"}>
-                      <NavLink to="/accounts" className="flex items-center gap-2.5">
-                        <FolderTree className="size-4" />
-                        <span>Chart of Accounts</span>
+                  <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === "/accounts"}
+                      tooltip="Chart of Accounts (COA)"
+                      className="group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
+                    >
+                      <NavLink to="/accounts" className="flex items-center gap-2.5 w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:size-full">
+                        <FolderTree className="size-4 shrink-0" />
+                        <span className="group-data-[collapsible=icon]:hidden">Chart of Accounts</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
 
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={location.pathname === "/journals" || location.pathname.startsWith("/journals/")}>
-                      <NavLink to="/journals" className="flex items-center gap-2.5">
-                        <BookOpen className="size-4" />
-                        <span>Jurnal Umum</span>
+                  <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === "/journals" || location.pathname.startsWith("/journals/")}
+                      tooltip="Jurnal Umum (Double-Entry)"
+                      className="group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
+                    >
+                      <NavLink to="/journals" className="flex items-center gap-2.5 w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:size-full">
+                        <BookOpen className="size-4 shrink-0" />
+                        <span className="group-data-[collapsible=icon]:hidden">Jurnal Umum</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
 
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={location.pathname.startsWith("/reports/general-ledger")}>
-                      <NavLink to="/reports/general-ledger" className="flex items-center gap-2.5">
-                        <FileSpreadsheet className="size-4" />
-                        <span>Buku Besar</span>
+                  <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname.startsWith("/reports/general-ledger")}
+                      tooltip="Buku Besar (Mutasi Kartu Akun)"
+                      className="group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
+                    >
+                      <NavLink to="/reports/general-ledger" className="flex items-center gap-2.5 w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:size-full">
+                        <FileSpreadsheet className="size-4 shrink-0" />
+                        <span className="group-data-[collapsible=icon]:hidden">Buku Besar</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
 
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={location.pathname === "/approvals"}>
-                      <NavLink to="/approvals" className="flex items-center justify-between w-full">
-                        <div className="flex items-center gap-2.5">
-                          <CheckSquare className="size-4" />
-                          <span>Persetujuan</span>
+                  <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === "/approvals"}
+                      tooltip="Antrean Persetujuan Jurnal"
+                      className="group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
+                    >
+                      <NavLink to="/approvals" className="flex items-center justify-between w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:size-full">
+                        <div className="flex items-center gap-2.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0">
+                          <CheckSquare className="size-4 shrink-0" />
+                          <span className="group-data-[collapsible=icon]:hidden">Persetujuan</span>
                         </div>
                         <Badge variant="outline" className="ml-auto text-[10px] h-4 px-1.5 border-white/30 text-white bg-white/10 group-data-[collapsible=icon]:hidden">
                           2
@@ -146,45 +172,69 @@ export function AppShell() {
               </SidebarGroupContent>
             </SidebarGroup>
 
+            <div className="flex justify-center w-full px-2 py-0.5">
+              <Separator className="bg-sidebar-border/60 w-full group-data-[collapsible=icon]:w-5" />
+            </div>
+
             {/* Group 2: Periode & Pelaporan */}
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/70 px-2">
+            <SidebarGroup className="p-0 group-data-[collapsible=icon]:p-0">
+              <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/70 px-2 h-7 group-data-[collapsible=icon]:hidden">
                 Periode & Laporan
               </SidebarGroupLabel>
               <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={location.pathname === "/periods"}>
-                      <NavLink to="/periods" className="flex items-center gap-2.5">
-                        <CalendarClock className="size-4" />
-                        <span>Periode & Tutup Buku</span>
+                <SidebarMenu className="gap-1 group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:items-center">
+                  <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === "/periods"}
+                      tooltip="Periode Akuntansi & Tutup Buku"
+                      className="group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
+                    >
+                      <NavLink to="/periods" className="flex items-center gap-2.5 w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:size-full">
+                        <CalendarClock className="size-4 shrink-0" />
+                        <span className="group-data-[collapsible=icon]:hidden">Periode & Tutup Buku</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
 
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={location.pathname === "/reports"}>
-                      <NavLink to="/reports" className="flex items-center gap-2.5">
-                        <BarChart3 className="size-4" />
-                        <span>Laporan Keuangan</span>
+                  <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === "/reports"}
+                      tooltip="Laporan Keuangan Resmi"
+                      className="group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
+                    >
+                      <NavLink to="/reports" className="flex items-center gap-2.5 w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:size-full">
+                        <BarChart3 className="size-4 shrink-0" />
+                        <span className="group-data-[collapsible=icon]:hidden">Laporan Keuangan</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
 
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={location.pathname === "/imports"}>
-                      <NavLink to="/imports" className="flex items-center gap-2.5">
-                        <UploadCloud className="size-4" />
-                        <span>Impor Massal (Batch)</span>
+                  <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === "/imports"}
+                      tooltip="Impor Massal Batch"
+                      className="group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
+                    >
+                      <NavLink to="/imports" className="flex items-center gap-2.5 w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:size-full">
+                        <UploadCloud className="size-4 shrink-0" />
+                        <span className="group-data-[collapsible=icon]:hidden">Impor Massal (Batch)</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
 
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={location.pathname === "/audit"}>
-                      <NavLink to="/audit" className="flex items-center gap-2.5">
-                        <ShieldCheck className="size-4" />
-                        <span>Jejak Audit</span>
+                  <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === "/audit"}
+                      tooltip="Jejak Audit Append-Only"
+                      className="group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
+                    >
+                      <NavLink to="/audit" className="flex items-center gap-2.5 w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:size-full">
+                        <ShieldCheck className="size-4 shrink-0" />
+                        <span className="group-data-[collapsible=icon]:hidden">Jejak Audit</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -192,18 +242,27 @@ export function AppShell() {
               </SidebarGroupContent>
             </SidebarGroup>
 
+            <div className="flex justify-center w-full px-2 py-0.5">
+              <Separator className="bg-sidebar-border/60 w-full group-data-[collapsible=icon]:w-5" />
+            </div>
+
             {/* Group 3: Design System & Dokumentasi */}
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/70 px-2">
+            <SidebarGroup className="p-0 group-data-[collapsible=icon]:p-0">
+              <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/70 px-2 h-7 group-data-[collapsible=icon]:hidden">
                 Design & Referensi
               </SidebarGroupLabel>
               <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={location.pathname === "/design-system"}>
-                      <NavLink to="/design-system" className="flex items-center gap-2.5">
-                        <Palette className="size-4" />
-                        <span>Design System UI</span>
+                <SidebarMenu className="gap-1 group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:items-center">
+                  <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === "/design-system"}
+                      tooltip="Design System & Komponen"
+                      className="group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
+                    >
+                      <NavLink to="/design-system" className="flex items-center gap-2.5 w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:size-full">
+                        <Palette className="size-4 shrink-0" />
+                        <span className="group-data-[collapsible=icon]:hidden">Design System UI</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -213,11 +272,14 @@ export function AppShell() {
           </SidebarContent>
 
           {/* Sidebar Footer: User Session Switcher */}
-          <SidebarFooter className="border-t border-sidebar-border p-2">
+          <SidebarFooter className="border-t border-sidebar-border h-14 p-0 flex items-center justify-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start gap-2.5 px-2 h-12 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-                  <Avatar size="sm">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-2.5 px-3 h-10 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-lg"
+                >
+                  <Avatar size="sm" className="size-8 shrink-0">
                     <AvatarFallback className="bg-white/20 text-white font-bold text-xs border border-white/20">
                       {currentUser.initials}
                     </AvatarFallback>
@@ -225,6 +287,10 @@ export function AppShell() {
                   <div className="flex flex-col items-start text-left overflow-hidden group-data-[collapsible=icon]:hidden">
                     <span className="text-xs font-semibold text-sidebar-foreground truncate">{currentUser.name}</span>
                     <span className="text-[10px] text-sidebar-foreground/75 truncate">{currentUser.role}</span>
+                  </div>
+                  <ChevronDown className="size-3.5 text-sidebar-foreground/70 ml-auto group-data-[collapsible=icon]:hidden" />
+                </Button>
+              </DropdownMenuTrigger>
                   </div>
                   <ChevronDown className="size-3.5 text-sidebar-foreground/70 ml-auto group-data-[collapsible=icon]:hidden" />
                 </Button>
@@ -292,6 +358,9 @@ export function AppShell() {
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarFooter>
+
+          {/* Interactive Resize Rail */}
+          <SidebarRail />
         </Sidebar>
 
         {/* Main Content Area */}

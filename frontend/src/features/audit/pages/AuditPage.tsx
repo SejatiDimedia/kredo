@@ -52,13 +52,13 @@ export function AuditPage() {
           </Badge>
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Tabel log append-only dengan larangan UPDATE dan DELETE di level trigger PostgreSQL (INV-14).
+          Tabel log append-only dengan perlindungan larangan UPDATE dan DELETE di tingkat database.
         </p>
       </div>
 
       <Alert className="border-border/60 bg-muted/20">
         <ShieldCheck className="size-4 text-primary" />
-        <AlertTitle className="text-xs font-semibold">Integritas Keamanan Log (INV-14)</AlertTitle>
+        <AlertTitle className="text-xs font-semibold">Integritas Keamanan Log Audit</AlertTitle>
         <AlertDescription className="text-xs text-muted-foreground">
           Database trigger mencegah modifikasi dan penghapusan data secara paksa. Setiap perubahan status jurnal mencatat ID pengguna, alamat IP, timestamp presisi milidetik, dan hash payload transaksi.
         </AlertDescription>

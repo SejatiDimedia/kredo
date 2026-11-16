@@ -118,10 +118,10 @@ export function PeriodsPage() {
         </div>
       </div>
 
-      {/* Accounting Invariant Alert (INV-08) */}
+      {/* Accounting Notice Alert */}
       <Alert className="border-border/60 bg-muted/20">
         <ShieldCheck className="size-4 text-primary" />
-        <AlertTitle className="text-xs font-semibold">Aturan Tutup Buku (INV-08 & INV-11)</AlertTitle>
+        <AlertTitle className="text-xs font-semibold">Aturan Tutup Buku</AlertTitle>
         <AlertDescription className="text-xs text-muted-foreground">
           Sistem secara otomatis menolak posting jurnal baru pada periode yang berstatus <code>CLOSED</code>. Pembukaan kembali periode tertutup membutuhkan otorisasi Financial Controller dan dicatat pada jejak audit.
         </AlertDescription>

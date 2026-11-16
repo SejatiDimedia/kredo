@@ -72,7 +72,7 @@ public class JournalService {
     @Transactional
     public JournalResponse createJournal(Long entityId, Long userId, CreateJournalRequest request,
             boolean postImmediately) {
-        // 1. Validasi Keseimbangan Debit vs Kredit (INV-01)
+        // 1. Validasi Keseimbangan Debit vs Kredit
         BigDecimal totalDebit = BigDecimal.ZERO;
         BigDecimal totalCredit = BigDecimal.ZERO;
 
@@ -91,7 +91,7 @@ public class JournalService {
             throw new IllegalArgumentException("Total nilai jurnal harus lebih besar dari 0.");
         }
 
-        // 2. Validasi & Auto-Resolve Periode Akuntansi (INV-08)
+        // 2. Validasi & Auto-Resolve Periode Akuntansi
         AccountingPeriod period;
         if (request.periodId() != null) {
             period = accountingPeriodRepository.findByEntityIdAndId(entityId, request.periodId())
@@ -104,11 +104,10 @@ public class JournalService {
                             "Tidak ada periode akuntansi untuk tanggal: " + request.entryDate()));
         }
 
-        // Penegakan Invariant INV-08: Jurnal tidak boleh diposting ke periode CLOSED
-        // atau LOCKED!
+        // Penegakan aturan: Jurnal tidak boleh diposting ke periode CLOSED atau LOCKED
         if (postImmediately && !period.isOpen()) {
             throw new IllegalStateException(String.format(
-                    "Transaksi ditolak: Periode akuntansi bulan ke-%d berstatus %s. Jurnal hanya dapat diposting pada periode OPEN (INV-08).",
+                    "Transaksi ditolak: Periode akuntansi bulan ke-%d berstatus %s. Jurnal hanya dapat diposting pada periode OPEN.",
                     period.getPeriodNo(), period.getStatus()));
         }
 
@@ -130,10 +129,10 @@ public class JournalService {
                 throw new IllegalArgumentException(
                         "Akun " + acc.getCode() + " - " + acc.getName() + " dalam status non-aktif.");
             }
-            // Validasi INV-03: Hanya akun daun/leaf (postable) yang boleh dijurnal
+            // Validasi: Hanya akun daun/leaf (postable) yang boleh dijurnal
             if (!acc.isPostable()) {
                 throw new IllegalArgumentException("Akun " + acc.getCode()
-                        + " adalah akun Header/Induk dan tidak boleh dijurnal langsung (INV-03).");
+                        + " adalah akun Header/Induk dan tidak boleh dijurnal langsung.");
             }
         }
 
@@ -391,7 +390,7 @@ public class JournalService {
 
         if (!currentPeriod.isOpen()) {
             throw new IllegalStateException(String.format(
-                    "Pembalik jurnal gagal: Periode akuntansi berjalan (%d) berstatus %s (INV-08).",
+                    "Pembalik jurnal gagal: Periode akuntansi berjalan (%d) berstatus %s.",
                     currentPeriod.getPeriodNo(), currentPeriod.getStatus()));
         }
 

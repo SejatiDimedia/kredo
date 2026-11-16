@@ -300,7 +300,7 @@ export function JournalDetailPage() {
               Balik Jurnal: {journal.journalNo}
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Sesuai aturan akuntansi <strong>INV-02</strong>, jurnal berstatus POSTED tidak dapat dihapus. Pembalikan akan menghasilkan voucher jurnal baru yang menukar posisi Debit dan Kredit untuk menetralkan saldo.
+              Sesuai aturan akuntansi, jurnal berstatus POSTED tidak dapat dihapus. Pembalikan akan menghasilkan voucher jurnal baru yang menukar posisi Debit dan Kredit untuk menetralkan saldo.
             </DialogDescription>
           </DialogHeader>
 
@@ -336,7 +336,7 @@ export function JournalDetailPage() {
               className="text-xs bg-amber-600 hover:bg-amber-700 text-white gap-1.5"
             >
               {isReversing && <Loader2 className="size-3.5 animate-spin" />}
-              Eksekusi Pembalik (INV-10)
+              Eksekusi Pembalik
             </Button>
           </DialogFooter>
         </DialogContent>
