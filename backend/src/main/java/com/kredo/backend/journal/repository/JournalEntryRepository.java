@@ -25,4 +25,8 @@ public interface JournalEntryRepository extends JpaRepository<JournalEntry, Long
 
     @EntityGraph(attributePaths = { "lines" })
     Optional<JournalEntry> findByEntityIdAndId(Long entityId, Long id);
+
+    // Hitung jumlah jurnal yang masih menggantung (DRAFT, SUBMITTED, APPROVED) pada
+    // suatu periode
+    long countByEntityIdAndPeriodIdAndStatusIn(Long entityId, Long periodId, List<JournalStatus> statuses);
 }
