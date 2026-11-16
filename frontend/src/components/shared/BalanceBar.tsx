@@ -36,8 +36,8 @@ export function BalanceBar({
         isBalanced
           ? "border-teal-500/30 bg-teal-500/[0.04]"
           : !isZero
-          ? "border-rose-500/30 bg-rose-500/[0.04]"
-          : "border-border/60",
+            ? "border-rose-500/30 bg-rose-500/[0.04]"
+            : "border-border/60",
         className
       )}
     >
@@ -76,8 +76,8 @@ export function BalanceBar({
                 isBalanced
                   ? "text-emerald-700 dark:text-emerald-400"
                   : !isZero
-                  ? "text-rose-700 dark:text-rose-400 font-extrabold"
-                  : "text-muted-foreground"
+                    ? "text-rose-700 dark:text-rose-400 font-extrabold"
+                    : "text-muted-foreground"
               )}
             >
               <MoneyText amount={diff} />
@@ -89,7 +89,7 @@ export function BalanceBar({
             {isBalanced ? (
               <Badge variant="outline" className="border-teal-500/40 text-teal-700 dark:text-teal-400 gap-1.5 py-1 px-2.5 font-semibold">
                 <CheckCircle2 className="size-3.5" />
-                Seimbang (INV-01)
+                Seimbang
               </Badge>
             ) : !isZero ? (
               <Badge variant="destructive" className="gap-1.5 py-1 px-2.5 font-semibold">

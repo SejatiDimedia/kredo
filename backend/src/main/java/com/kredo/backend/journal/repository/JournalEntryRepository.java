@@ -2,6 +2,7 @@ package com.kredo.backend.journal.repository;
 
 import com.kredo.backend.journal.domain.JournalEntry;
 import com.kredo.backend.journal.domain.JournalStatus;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,15 +12,17 @@ import java.util.Optional;
 @Repository
 public interface JournalEntryRepository extends JpaRepository<JournalEntry, Long> {
 
-    // Ambil semua jurnal milik entitas tertentu, diurutkan dari transaksi terbaru
+    // Ambil jurnal beserta baris-barisnya (lines) dalam 1 query SQL (JOIN) bebas
+    // N+1 & Lazy Exception
+    @EntityGraph(attributePaths = { "lines" })
     List<JournalEntry> findByEntityIdOrderByEntryDateDescIdDesc(Long entityId);
 
-    // Filter jurnal berdasarkan status (misal hanya yang POSTED atau DRAFT)
+    @EntityGraph(attributePaths = { "lines" })
     List<JournalEntry> findByEntityIdAndStatusOrderByEntryDateDesc(Long entityId, JournalStatus status);
 
-    // Cari jurnal berdasarkan nomor resmi (misal: "JV-PTM-2026-000001")
+    @EntityGraph(attributePaths = { "lines" })
     Optional<JournalEntry> findByEntityIdAndJournalNo(Long entityId, String journalNo);
 
-    // Cari jurnal berdasarkan ID dan entitas
+    @EntityGraph(attributePaths = { "lines" })
     Optional<JournalEntry> findByEntityIdAndId(Long entityId, Long id);
 }

@@ -48,6 +48,7 @@ public class JournalService {
     /**
      * Mengambil daftar seluruh jurnal pada entitas tertentu.
      */
+    @Transactional(readOnly = true)
     public List<JournalResponse> getJournalsByEntity(Long entityId) {
         return journalEntryRepository.findByEntityIdOrderByEntryDateDescIdDesc(entityId)
                 .stream()
@@ -200,6 +201,7 @@ public class JournalService {
     /**
      * Mengambil detail satu jurnal berdasarkan ID.
      */
+    @Transactional(readOnly = true)
     public JournalResponse getJournalById(Long entityId, Long id) {
         JournalEntry journal = journalEntryRepository.findByEntityIdAndId(entityId, id)
                 .orElseThrow(() -> new IllegalArgumentException("Jurnal dengan ID " + id + " tidak ditemukan."));
@@ -243,11 +245,11 @@ public class JournalService {
                     + journal.getStatus() + ").");
         }
 
-        // Penegakan Aturan Maker-Checker (INV-06)
+        // Penegakan Aturan Maker-Checker
         if (approverId.equals(journal.getCreatedBy()) ||
                 (journal.getSubmittedBy() != null && approverId.equals(journal.getSubmittedBy()))) {
             throw new IllegalStateException(
-                    "Pelanggaran Maker-Checker (INV-06): Pembuat atau pengaju jurnal tidak boleh menyetujui jurnalnya sendiri!");
+                    "Pelanggaran Maker-Checker: Pembuat atau pengaju jurnal tidak boleh menyetujui jurnalnya sendiri!");
         }
 
         journal.setApprovedBy(approverId);
@@ -257,7 +259,7 @@ public class JournalService {
             AccountingPeriod period = accountingPeriodRepository.findByEntityIdAndId(entityId, journal.getPeriodId())
                     .orElseThrow(() -> new IllegalStateException("Periode akuntansi tidak ditemukan."));
             if (!period.isOpen()) {
-                throw new IllegalStateException("Posting gagal: Periode akuntansi telah ditutup (INV-08).");
+                throw new IllegalStateException("Posting gagal: Periode akuntansi telah ditutup.");
             }
 
             // Alokasikan nomor resmi tanpa celah
@@ -323,7 +325,7 @@ public class JournalService {
         AccountingPeriod period = accountingPeriodRepository.findByEntityIdAndId(entityId, journal.getPeriodId())
                 .orElseThrow(() -> new IllegalStateException("Periode akuntansi tidak ditemukan."));
         if (!period.isOpen()) {
-            throw new IllegalStateException("Posting gagal: Periode akuntansi telah ditutup (INV-08).");
+            throw new IllegalStateException("Posting gagal: Periode akuntansi telah ditutup.");
         }
 
         String journalNo = generateGaplessJournalNo(entityId, journal.getEntryDate().getYear());

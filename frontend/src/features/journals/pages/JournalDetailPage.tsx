@@ -1,3 +1,4 @@
+import * as React from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 import {
@@ -25,85 +26,109 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 import { MoneyText } from "@/components/shared/MoneyText"
 import {
   ArrowLeft,
   Printer,
   RotateCcw,
-  CheckCircle2,
   Clock,
   User,
   Hash,
+  Loader2,
 } from "lucide-react"
+import { apiFetch } from "@/lib/api"
+import type { JournalResponse } from "../types"
+
+interface AccountData {
+  id: number
+  code: string
+  name: string
+  type: string
+}
 
 export function JournalDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
-  // Mock detail data matching the requested journal ID or fallback
-  const journal = {
-    journalNo: id || "JV-PTM-2026-000003",
-    date: "15 Nov 2026",
-    period: "Nov 2026 (OPEN)",
-    description: "Penjualan Kredit Barang Dagang",
-    reference: "INV/2026/11/0088",
-    status: "POSTED" as const,
-    source: "MANUAL",
-    totalDebit: "15000000",
-    totalCredit: "15000000",
-    maker: "Dina Putri (Accountant)",
-    approver: "Raka Pratama (Checker)",
-    lines: [
-      {
-        lineNo: 1,
-        accountCode: "1201",
-        accountName: "Piutang Dagang Pihak Ketiga",
-        category: "ASET",
-        debit: "15000000",
-        credit: "0",
-        memo: "Faktur Penjualan PT Berkah Abadi",
-      },
-      {
-        lineNo: 2,
-        accountCode: "4101",
-        accountName: "Pendapatan Penjualan Produk",
-        category: "PENDAPATAN",
-        debit: "0",
-        credit: "15000000",
-        memo: "Pendapatan atas transaksi INV/2026/11/0088",
-      },
-    ],
-    timeline: [
-      {
-        action: "POST_JOURNAL",
-        actor: "Raka Pratama (Checker)",
-        timestamp: "15 Nov 2026 09:15:22",
-        statusFrom: "APPROVED",
-        statusTo: "POSTED",
-        note: "Disahkan dan diposting ke Buku Besar secara permanen.",
-      },
-      {
-        action: "APPROVE_JOURNAL",
-        actor: "Raka Pratama (Checker)",
-        timestamp: "15 Nov 2026 09:10:05",
-        statusFrom: "SUBMITTED",
-        statusTo: "APPROVED",
-        note: "Kelengkapan faktur diverifikasi dan seimbang.",
-      },
-      {
-        action: "SUBMIT_JOURNAL",
-        actor: "Dina Putri (Maker)",
-        timestamp: "15 Nov 2026 08:30:10",
-        statusFrom: "DRAFT",
-        statusTo: "SUBMITTED",
-        note: "Diajukan untuk persetujuan supervisor.",
-      },
-    ],
+  const [journal, setJournal] = React.useState<JournalResponse | null>(null)
+  const [accountMap, setAccountMap] = React.useState<Map<number, AccountData>>(new Map())
+  const [isLoading, setIsLoading] = React.useState(true)
+
+  // State untuk dialog pembalikan jurnal (Reversal)
+  const [showReversalModal, setShowReversalModal] = React.useState(false)
+  const [reversalReason, setReversalReason] = React.useState("")
+  const [isReversing, setIsReversing] = React.useState(false)
+
+  const fetchJournalAndAccounts = React.useCallback(async () => {
+    if (!id) return
+    try {
+      setIsLoading(true)
+      const [journalData, accountsData] = await Promise.all([
+        apiFetch<JournalResponse>(`/journals/${id}?entityId=1`),
+        apiFetch<AccountData[]>("/accounts?entityId=1"),
+      ])
+
+      const map = new Map<number, AccountData>()
+      accountsData.forEach((acc) => map.set(acc.id, acc))
+
+      setJournal(journalData)
+      setAccountMap(map)
+    } catch (err: any) {
+      toast.error(err.message || "Gagal memuat detail jurnal")
+    } finally {
+      setIsLoading(false)
+    }
+  }, [id])
+
+  React.useEffect(() => {
+    fetchJournalAndAccounts()
+  }, [fetchJournalAndAccounts])
+
+  const handleExecuteReversal = async () => {
+    if (!journal) return
+    try {
+      setIsReversing(true)
+      const res = await apiFetch<JournalResponse>(`/journals/${journal.id}/reverse?entityId=1`, {
+        method: "POST",
+        body: JSON.stringify({ reason: reversalReason || "Koreksi pembukuan" }),
+      })
+      toast.success(`Jurnal pembalik ${res.journalNo} berhasil diposting ke Buku Besar.`)
+      setShowReversalModal(false)
+      navigate("/journals")
+    } catch (err: any) {
+      toast.error(err.message || "Gagal membalik jurnal")
+    } finally {
+      setIsReversing(false)
+    }
   }
 
-  const handleReverseJournal = () => {
-    toast.success(`Jurnal pembalik (reversal) untuk ${journal.journalNo} berhasil dibuat di periode OPEN!`)
-    navigate("/journals")
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 gap-3 text-muted-foreground text-xs">
+        <Loader2 className="size-6 animate-spin text-primary" />
+        Memuat detail voucher jurnal dari database...
+      </div>
+    )
+  }
+
+  if (!journal) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 gap-3 text-muted-foreground text-xs">
+        <p>Jurnal dengan ID {id} tidak ditemukan.</p>
+        <Button size="sm" variant="outline" onClick={() => navigate("/journals")}>
+          Kembali ke Daftar Jurnal
+        </Button>
+      </div>
+    )
   }
 
   return (
@@ -120,7 +145,7 @@ export function JournalDetailPage() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>{journal.journalNo}</BreadcrumbPage>
+            <BreadcrumbPage>{journal.journalNo || `Draft #${journal.id}`}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -139,7 +164,7 @@ export function JournalDetailPage() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold tracking-tight text-foreground font-heading">
-                {journal.journalNo}
+                {journal.journalNo || `Draft #${journal.id}`}
               </h1>
               <Badge variant="secondary" className="font-semibold text-xs">
                 {journal.status}
@@ -149,7 +174,7 @@ export function JournalDetailPage() {
               </Badge>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {journal.description} • Periode: {journal.period}
+              {journal.description}
             </p>
           </div>
         </div>
@@ -157,13 +182,16 @@ export function JournalDetailPage() {
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             <Printer className="size-3.5 mr-1.5" />
-            Cetak Voucher Jurnal
+            Cetak Voucher
           </Button>
-          {journal.status === "POSTED" && (
+          {journal.status === "POSTED" && journal.source !== "REVERSAL" && (
             <Button
               variant="outline"
               size="sm"
-              onClick={handleReverseJournal}
+              onClick={() => {
+                setShowReversalModal(true)
+                setReversalReason("")
+              }}
               className="border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10"
             >
               <RotateCcw className="size-3.5 mr-1.5" />
@@ -181,15 +209,15 @@ export function JournalDetailPage() {
               <Clock className="size-3" /> Tanggal Transaksi
             </span>
             <span className="font-semibold font-mono text-foreground text-sm mt-0.5 block">
-              {journal.date}
+              {journal.entryDate}
             </span>
           </div>
           <div>
             <span className="text-muted-foreground flex items-center gap-1">
-              <Hash className="size-3" /> No. Referensi
+              <Hash className="size-3" /> No. Urut Resmi
             </span>
             <span className="font-semibold font-mono text-foreground text-sm mt-0.5 block">
-              {journal.reference}
+              {journal.journalNo || "-"}
             </span>
           </div>
           <div>
@@ -197,15 +225,15 @@ export function JournalDetailPage() {
               <User className="size-3" /> Pembuat (Maker)
             </span>
             <span className="font-medium text-foreground text-sm mt-0.5 block">
-              {journal.maker}
+              User ID {journal.createdBy}
             </span>
           </div>
           <div>
             <span className="text-muted-foreground flex items-center gap-1">
-              <CheckCircle2 className="size-3 text-teal-600" /> Penyetuju (Checker)
+              <User className="size-3" /> Status Posting
             </span>
             <span className="font-medium text-foreground text-sm mt-0.5 block">
-              {journal.approver}
+              {journal.status}
             </span>
           </div>
         </CardContent>
@@ -232,82 +260,87 @@ export function JournalDetailPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {journal.lines.map((line) => (
-                <TableRow key={line.lineNo} className="border-b border-border/20 hover:bg-muted/10">
-                  <TableCell className="pl-6 text-center font-mono text-xs text-muted-foreground py-3">
-                    {line.lineNo}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs font-semibold text-primary py-3">
-                    {line.accountCode}
-                  </TableCell>
-                  <TableCell className="text-xs font-medium py-3">
-                    {line.accountName}
-                    <span className="text-[10px] text-muted-foreground ml-2">({line.category})</span>
-                  </TableCell>
-                  <TableCell className="text-right text-xs font-mono py-3">
-                    <MoneyText amount={line.debit} />
-                  </TableCell>
-                  <TableCell className="text-right text-xs font-mono py-3">
-                    <MoneyText amount={line.credit} />
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground pr-6 py-3">
-                    {line.memo}
-                  </TableCell>
-                </TableRow>
-              ))}
-
-              {/* Total Balance Row */}
-              <TableRow className="border-t-2 border-border/60 bg-muted/20 font-bold">
-                <TableCell colSpan={3} className="pl-6 text-foreground text-xs py-3">
-                  TOTAL KESEIMBANGAN JURNAL (INV-01)
-                </TableCell>
-                <TableCell className="text-right text-xs font-mono py-3">
-                  <MoneyText amount={journal.totalDebit} className="font-bold text-foreground" />
-                </TableCell>
-                <TableCell className="text-right text-xs font-mono py-3">
-                  <MoneyText amount={journal.totalCredit} className="font-bold text-foreground" />
-                </TableCell>
-                <TableCell className="pr-6 text-xs text-emerald-700 dark:text-emerald-400 font-extrabold py-3">
-                  <span className="inline-flex items-center gap-1">
-                    <CheckCircle2 className="size-3.5" /> SEIMBANG (0 VARIATION)
-                  </span>
-                </TableCell>
-              </TableRow>
+              {journal.lines.map((line) => {
+                const acc = accountMap.get(line.accountId)
+                return (
+                  <TableRow key={line.id} className="border-b border-border/20 hover:bg-muted/10">
+                    <TableCell className="pl-6 text-center font-mono text-xs text-muted-foreground py-3">
+                      {line.lineNo}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs font-semibold text-primary py-3">
+                      {acc ? acc.code : `ID: ${line.accountId}`}
+                    </TableCell>
+                    <TableCell className="text-xs font-medium py-3">
+                      {acc ? acc.name : "Akun Buku Besar"}
+                      {acc && <span className="text-[10px] text-muted-foreground ml-2">({acc.type})</span>}
+                    </TableCell>
+                    <TableCell className="text-right text-xs font-mono py-3">
+                      <MoneyText amount={line.debit} />
+                    </TableCell>
+                    <TableCell className="text-right text-xs font-mono py-3">
+                      <MoneyText amount={line.credit} />
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground pr-6 py-3">
+                      {line.memo || "-"}
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
 
-      {/* Audit Status Timeline Card (FR-JRN-10) */}
-      <Card>
-        <CardHeader className="border-b border-border/30 pb-3">
-          <CardTitle className="text-sm font-semibold">Linimasa Riwayat Status (Audit Trail)</CardTitle>
-          <CardDescription className="text-xs">
-            Jejak waktu dan aktor otorisasi perpindahan siklus jurnal.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-4 space-y-4">
-          {journal.timeline.map((step, idx) => (
-            <div key={idx} className="flex items-start gap-3 text-xs">
-              <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary mt-0.5">
-                <CheckCircle2 className="size-3.5" />
-              </div>
-              <div className="flex-1 space-y-0.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-foreground">
-                    {step.action} ({step.statusFrom} → {step.statusTo})
-                  </span>
-                  <span className="text-[11px] font-mono text-muted-foreground">
-                    {step.timestamp}
-                  </span>
-                </div>
-                <p className="text-muted-foreground">Oleh: <strong className="text-foreground">{step.actor}</strong></p>
-                <p className="text-xs text-muted-foreground/80 italic">{step.note}</p>
-              </div>
+      {/* Dialog Konfirmasi Pembalikan Jurnal */}
+      <Dialog open={showReversalModal} onOpenChange={setShowReversalModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-semibold text-amber-700 dark:text-amber-400">
+              <RotateCcw className="size-4" />
+              Balik Jurnal: {journal.journalNo}
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Sesuai aturan akuntansi <strong>INV-02</strong>, jurnal berstatus POSTED tidak dapat dihapus. Pembalikan akan menghasilkan voucher jurnal baru yang menukar posisi Debit dan Kredit untuk menetralkan saldo.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-3 py-2 text-xs">
+            <div>
+              <label htmlFor="reversalReason" className="font-medium text-[11px] block mb-1">
+                Alasan Pembalikan / Koreksi (Wajib Audit):
+              </label>
+              <Input
+                id="reversalReason"
+                placeholder="Contoh: Koreksi salah catat akun beban..."
+                value={reversalReason}
+                onChange={(e) => setReversalReason(e.target.value)}
+                className="text-xs h-9"
+              />
             </div>
-          ))}
-        </CardContent>
-      </Card>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowReversalModal(false)}
+              disabled={isReversing}
+              className="text-xs"
+            >
+              Batal
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleExecuteReversal}
+              disabled={isReversing}
+              className="text-xs bg-amber-600 hover:bg-amber-700 text-white gap-1.5"
+            >
+              {isReversing && <Loader2 className="size-3.5 animate-spin" />}
+              Eksekusi Pembalik (INV-10)
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
