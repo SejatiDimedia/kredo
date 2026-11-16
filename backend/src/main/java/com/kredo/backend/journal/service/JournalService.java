@@ -1,9 +1,11 @@
 package com.kredo.backend.journal.service;
 
+import com.kredo.backend.audit.service.AuditLogService;
 import com.kredo.backend.coa.domain.Account;
 import com.kredo.backend.coa.repository.AccountRepository;
 import com.kredo.backend.journal.domain.JournalEntry;
 import com.kredo.backend.journal.domain.JournalLine;
+import com.kredo.backend.journal.domain.JournalSource;
 import com.kredo.backend.journal.domain.JournalStatus;
 import com.kredo.backend.journal.dto.CreateJournalLineRequest;
 import com.kredo.backend.journal.dto.CreateJournalRequest;
@@ -32,17 +34,20 @@ public class JournalService {
     private final AccountingPeriodRepository accountingPeriodRepository;
     private final AccountBalanceService accountBalanceService;
     private final JdbcTemplate jdbcTemplate;
+    private final AuditLogService auditLogService;
 
     public JournalService(JournalEntryRepository journalEntryRepository,
             AccountRepository accountRepository,
             AccountingPeriodRepository accountingPeriodRepository,
             AccountBalanceService accountBalanceService,
-            JdbcTemplate jdbcTemplate) {
+            JdbcTemplate jdbcTemplate,
+            AuditLogService auditLogService) {
         this.journalEntryRepository = journalEntryRepository;
         this.accountRepository = accountRepository;
         this.accountingPeriodRepository = accountingPeriodRepository;
         this.accountBalanceService = accountBalanceService;
         this.jdbcTemplate = jdbcTemplate;
+        this.auditLogService = auditLogService;
     }
 
     /**
@@ -124,12 +129,10 @@ public class JournalService {
             if (acc == null || !acc.getEntityId().equals(entityId)) {
                 throw new IllegalArgumentException("Akun dengan ID " + accId + " tidak ditemukan pada entitas ini.");
             }
-            // Menggunakan acc.isActive() sesuai konvensi boolean Lombok
             if (!acc.isActive()) {
                 throw new IllegalArgumentException(
                         "Akun " + acc.getCode() + " - " + acc.getName() + " dalam status non-aktif.");
             }
-            // Validasi: Hanya akun daun/leaf (postable) yang boleh dijurnal
             if (!acc.isPostable()) {
                 throw new IllegalArgumentException("Akun " + acc.getCode()
                         + " adalah akun Header/Induk dan tidak boleh dijurnal langsung.");
@@ -159,8 +162,7 @@ public class JournalService {
             journal.addLine(line);
         }
 
-        // 5. Jika posting langsung, alokasikan nomor urut resmi tanpa celah (Gapless
-        // Sequence)
+        // 5. Jika posting langsung, alokasikan nomor urut resmi tanpa celah
         if (postImmediately) {
             String journalNo = generateGaplessJournalNo(entityId, request.entryDate().getYear());
             journal.setJournalNo(journalNo);
@@ -169,12 +171,15 @@ public class JournalService {
             journal.setPostedAt(OffsetDateTime.now());
         }
 
-        // 6. Simpan ke database (Cascade otomatis menyimpan Header dan seluruh Lines)
+        // 6. Simpan ke database
         JournalEntry saved = journalEntryRepository.save(journal);
 
-        // 7. Jika diposting langsung, perbarui saldo rekening otomatis
+        // 7. Jika diposting langsung, perbarui saldo rekening otomatis & catat audit
         if (postImmediately) {
             accountBalanceService.updateBalancesForJournal(saved);
+            auditLogService.log(entityId, userId, "POST_JOURNAL", "JOURNAL_ENTRY", saved.getId(),
+                    String.format("{\"journalNo\":\"%s\",\"totalAmount\":%s}", saved.getJournalNo(),
+                            saved.getTotalAmount()));
         }
 
         return JournalResponse.fromEntity(saved);
@@ -182,8 +187,6 @@ public class JournalService {
 
     /**
      * Menghasilkan nomor jurnal resmi berurutan tanpa celah.
-     * Menggunakan Row-Level Lock (FOR UPDATE) pada tabel journal_sequence di
-     * PostgreSQL.
      */
     private String generateGaplessJournalNo(Long entityId, int fiscalYear) {
         String sqlLock = "SELECT last_number FROM journal_sequence WHERE entity_id = ? AND fiscal_year = ? FOR UPDATE";
@@ -209,7 +212,6 @@ public class JournalService {
 
     /**
      * Transisi: DRAFT -> SUBMITTED
-     * Mengajukan jurnal draft ke antrean persetujuan (Maker).
      */
     @Transactional
     public JournalResponse submitJournal(Long entityId, Long journalId, Long userId) {
@@ -225,14 +227,17 @@ public class JournalService {
         journal.setSubmittedBy(userId);
 
         JournalEntry saved = journalEntryRepository.save(journal);
+
+        auditLogService.log(entityId, userId, "SUBMIT_JOURNAL", "JOURNAL_ENTRY", journalId,
+                String.format("{\"journalNo\":\"%s\",\"totalAmount\":%s}",
+                        saved.getJournalNo() != null ? saved.getJournalNo() : "-", saved.getTotalAmount()));
+
         return JournalResponse.fromEntity(saved);
     }
 
     /**
      * Transisi: SUBMITTED -> APPROVED (atau langsung POSTED jika postImmediately =
      * true)
-     * Penyetuju tidak boleh sama dengan
-     * pembuat/pengaju!
      */
     @Transactional
     public JournalResponse approveJournal(Long entityId, Long journalId, Long approverId, boolean postImmediately) {
@@ -273,17 +278,25 @@ public class JournalService {
             // Perbarui saldo rekening otomatis
             accountBalanceService.updateBalancesForJournal(saved);
 
+            auditLogService.log(entityId, approverId, "POST_JOURNAL", "JOURNAL_ENTRY", journalId,
+                    String.format("{\"journalNo\":\"%s\",\"totalAmount\":%s}", saved.getJournalNo(),
+                            saved.getTotalAmount()));
+
             return JournalResponse.fromEntity(saved);
         } else {
             journal.setStatus(JournalStatus.APPROVED);
             JournalEntry saved = journalEntryRepository.save(journal);
+
+            auditLogService.log(entityId, approverId, "APPROVE_JOURNAL", "JOURNAL_ENTRY", journalId,
+                    String.format("{\"journalNo\":\"%s\",\"totalAmount\":%s}",
+                            saved.getJournalNo() != null ? saved.getJournalNo() : "-", saved.getTotalAmount()));
+
             return JournalResponse.fromEntity(saved);
         }
     }
 
     /**
      * Transisi: SUBMITTED -> DRAFT (Penolakan oleh Checker)
-     * Mengembalikan jurnal ke status DRAFT dengan alasan penolakan.
      */
     @Transactional
     public JournalResponse rejectJournal(Long entityId, Long journalId, Long rejecterId, String reason) {
@@ -305,12 +318,15 @@ public class JournalService {
         journal.setSubmittedBy(null);
 
         JournalEntry saved = journalEntryRepository.save(journal);
+
+        auditLogService.log(entityId, rejecterId, "REJECT_JOURNAL", "JOURNAL_ENTRY", journalId,
+                String.format("{\"reason\":\"%s\"}", reason.replace("\"", "\\\"")));
+
         return JournalResponse.fromEntity(saved);
     }
 
     /**
      * Transisi: APPROVED -> POSTED
-     * Memposting jurnal yang sudah disetujui sebelumnya ke buku besar.
      */
     @Transactional
     public JournalResponse postJournal(Long entityId, Long journalId, Long posterId) {
@@ -336,12 +352,15 @@ public class JournalService {
         JournalEntry saved = journalEntryRepository.save(journal);
         accountBalanceService.updateBalancesForJournal(saved);
 
+        auditLogService.log(entityId, posterId, "POST_JOURNAL", "JOURNAL_ENTRY", journalId,
+                String.format("{\"journalNo\":\"%s\",\"totalAmount\":%s}", saved.getJournalNo(),
+                        saved.getTotalAmount()));
+
         return JournalResponse.fromEntity(saved);
     }
 
     /**
      * Transisi: DRAFT -> CANCELLED
-     * Membatalkan draf jurnal yang tidak jadi digunakan.
      */
     @Transactional
     public JournalResponse cancelJournal(Long entityId, Long journalId, Long userId) {
@@ -359,7 +378,6 @@ public class JournalService {
 
     /**
      * Membalik jurnal berstatus POSTED (Reversal Entry).
-     * Membalik posisi Debit dan Kredit untuk menetralkan saldo secara legal.
      */
     @Transactional
     public JournalResponse reverseJournal(Long entityId, Long journalId, String reason) {
@@ -372,7 +390,7 @@ public class JournalService {
         }
 
         // Validasi 2: Jurnal pembalik tidak boleh dibalik lagi
-        if (original.getSource() == com.kredo.backend.journal.domain.JournalSource.REVERSAL) {
+        if (original.getSource() == JournalSource.REVERSAL) {
             throw new IllegalStateException("Jurnal pembalik tidak dapat dibalik kembali.");
         }
 
@@ -403,8 +421,8 @@ public class JournalService {
                 currentPeriod.getId(),
                 today,
                 desc,
-                com.kredo.backend.journal.domain.JournalSource.REVERSAL,
-                1L // User ID pembalik
+                JournalSource.REVERSAL,
+                1L // User ID pembalik (Maker)
         );
         reversal.setTotalAmount(original.getTotalAmount());
         reversal.setReversalOfId(original.getId());
@@ -439,6 +457,10 @@ public class JournalService {
 
         // Perbarui saldo rekening untuk jurnal pembalik
         accountBalanceService.updateBalancesForJournal(savedReversal);
+
+        auditLogService.log(entityId, 1L, "REVERSE_JOURNAL", "JOURNAL_ENTRY", journalId,
+                String.format("{\"reversalId\":%d,\"reversalNo\":\"%s\"}", savedReversal.getId(),
+                        savedReversal.getJournalNo()));
 
         return JournalResponse.fromEntity(savedReversal);
     }
