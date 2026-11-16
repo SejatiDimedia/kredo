@@ -5,7 +5,13 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api/
  * Otomatis menangani header JSON dan membaca pesan error jika terjadi kegagalan.
  */
 export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+    // Normalisasi: cegah duplikasi jika pemanggil menyertakan "/api/v1"
+    const normalizedEndpoint = endpoint.startsWith("/api/v1")
+        ? endpoint.slice("/api/v1".length)
+        : endpoint
+    const cleanEndpoint = normalizedEndpoint.startsWith("/") ? normalizedEndpoint : `/${normalizedEndpoint}`
+
+    const res = await fetch(`${API_BASE_URL}${cleanEndpoint}`, {
         headers: {
             "Content-Type": "application/json",
             ...options?.headers,

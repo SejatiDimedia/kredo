@@ -71,7 +71,7 @@ export function GeneralLedgerPage() {
     async function loadAccounts() {
       try {
         setIsLoadingAccounts(true)
-        const accList = await apiFetch<AccountOption[]>("/api/v1/accounts?entityId=1")
+        const accList = await apiFetch<AccountOption[]>("/accounts?entityId=1")
         const postableOnly = accList.filter((a) => a.isPostable)
         setAccounts(postableOnly)
 
@@ -112,7 +112,7 @@ export function GeneralLedgerPage() {
         setIsLoadingLedger(true)
         setError(null)
         const data = await apiFetch<GeneralLedgerResponse>(
-          `/api/v1/reports/general-ledger?entityId=1&periodId=11&accountId=${accId}`
+          `/reports/general-ledger?entityId=1&periodId=11&accountId=${accId}`
         )
         setLedgerData(data)
       } catch (err) {

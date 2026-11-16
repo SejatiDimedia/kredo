@@ -41,7 +41,7 @@ export function ReportsPage() {
       try {
         setIsLoading(true)
         setError(null)
-        const data = await apiFetch<TrialBalanceResponse>("/api/v1/reports/trial-balance?entityId=1&periodId=11")
+        const data = await apiFetch<TrialBalanceResponse>("/reports/trial-balance?entityId=1&periodId=11")
         setTrialBalance(data)
       } catch (err) {
         setError(err instanceof Error ? err.message : "Gagal memuat Neraca Saldo")
