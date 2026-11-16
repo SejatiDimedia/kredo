@@ -34,6 +34,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { MoneyText } from "@/components/shared/MoneyText"
 import {
@@ -44,6 +54,7 @@ import {
   User,
   Hash,
   Loader2,
+  Send,
 } from "lucide-react"
 import { apiFetch } from "@/lib/api"
 import type { JournalResponse } from "../types"
@@ -67,6 +78,10 @@ export function JournalDetailPage() {
   const [showReversalModal, setShowReversalModal] = React.useState(false)
   const [reversalReason, setReversalReason] = React.useState("")
   const [isReversing, setIsReversing] = React.useState(false)
+
+  // State untuk konfirmasi pengajuan draf
+  const [confirmSubmitOpen, setConfirmSubmitOpen] = React.useState(false)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   const fetchJournalAndAccounts = React.useCallback(async () => {
     if (!id) return
@@ -108,6 +123,23 @@ export function JournalDetailPage() {
       toast.error(err.message || "Gagal membalik jurnal")
     } finally {
       setIsReversing(false)
+    }
+  }
+
+  const handleSubmitDraft = async () => {
+    if (!journal) return
+    try {
+      setIsSubmitting(true)
+      await apiFetch<JournalResponse>(`/journals/${journal.id}/submit?userId=1`, {
+        method: "POST",
+      })
+      toast.success("Jurnal berhasil diajukan ke antrean persetujuan (SUBMITTED).")
+      setConfirmSubmitOpen(false)
+      fetchJournalAndAccounts()
+    } catch (err: any) {
+      toast.error(err.message || "Gagal mengajukan jurnal")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -184,6 +216,16 @@ export function JournalDetailPage() {
             <Printer className="size-3.5 mr-1.5" />
             Cetak Voucher
           </Button>
+          {journal.status === "DRAFT" && (
+            <Button
+              size="sm"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs gap-1.5 cursor-pointer"
+              onClick={() => setConfirmSubmitOpen(true)}
+            >
+              <Send className="size-3.5" />
+              Ajukan Persetujuan
+            </Button>
+          )}
           {journal.status === "POSTED" && journal.source !== "REVERSAL" && (
             <Button
               variant="outline"
@@ -192,7 +234,7 @@ export function JournalDetailPage() {
                 setShowReversalModal(true)
                 setReversalReason("")
               }}
-              className="border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10"
+              className="border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 cursor-pointer"
             >
               <RotateCcw className="size-3.5 mr-1.5" />
               Buat Jurnal Pembalik (Reversal)
@@ -341,6 +383,56 @@ export function JournalDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog Konfirmasi Pengajuan Jurnal Draf */}
+      <AlertDialog open={confirmSubmitOpen} onOpenChange={setConfirmSubmitOpen}>
+        <AlertDialogContent size="default" className="sm:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Pengajuan Jurnal</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-muted-foreground space-y-2">
+              <span>
+                Apakah Anda yakin ingin mengajukan voucher jurnal ini ke antrean persetujuan (Maker-Checker)?
+              </span>
+              {journal && (
+                <span className="rounded-md border p-2.5 bg-muted/20 text-xs block text-left">
+                  <span className="font-semibold text-foreground block">
+                    Draft #{journal.id} — {journal.description}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground mt-0.5 block">
+                    Tanggal: {journal.entryDate} • {journal.lines?.length || 0} baris akun
+                  </span>
+                  <span className="font-mono text-primary font-bold mt-1 block">
+                    Total: <MoneyText amount={journal.totalAmount} />
+                  </span>
+                </span>
+              )}
+              <span className="text-[11px] text-muted-foreground block">
+                Setelah diajukan, status jurnal akan berubah menjadi <code>SUBMITTED</code> dan menunggu peninjauan Checker sebelum dapat diposting.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSubmitting}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+              disabled={isSubmitting}
+              onClick={(e) => {
+                e.preventDefault()
+                handleSubmitDraft()
+              }}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="size-3.5 mr-1.5 animate-spin" />
+                  Mengajukan...
+                </>
+              ) : (
+                "Ya, Ajukan Persetujuan"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

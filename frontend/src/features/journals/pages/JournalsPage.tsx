@@ -50,6 +50,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { MoneyText } from "@/components/shared/MoneyText"
 import { Plus, Download, Search, MoreHorizontal, Eye, RotateCcw, Send, Loader2 } from "lucide-react"
 import { apiFetch } from "@/lib/api"
@@ -66,6 +76,10 @@ export function JournalsPage() {
   const [reversalTarget, setReversalTarget] = React.useState<JournalResponse | null>(null)
   const [reversalReason, setReversalReason] = React.useState("")
   const [isReversing, setIsReversing] = React.useState(false)
+
+  // State untuk dialog konfirmasi pengajuan (Submit Draft)
+  const [confirmSubmitTarget, setConfirmSubmitTarget] = React.useState<JournalResponse | null>(null)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   const fetchJournals = React.useCallback(async () => {
     try {
@@ -117,13 +131,17 @@ export function JournalsPage() {
   // Handle submit draft ke antrean persetujuan (Maker)
   const handleSubmitDraft = async (id: number) => {
     try {
+      setIsSubmitting(true)
       await apiFetch<JournalResponse>(`/journals/${id}/submit?userId=1`, {
         method: "POST",
       })
       toast.success("Jurnal berhasil diajukan ke antrean persetujuan (SUBMITTED).")
+      setConfirmSubmitTarget(null)
       fetchJournals()
     } catch (err: any) {
       toast.error(err.message || "Gagal mengajukan jurnal")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -299,8 +317,8 @@ export function JournalsPage() {
                           {/* Tombol Submit jika masih DRAFT */}
                           {journal.status === "DRAFT" && (
                             <DropdownMenuItem
-                              onClick={() => handleSubmitDraft(journal.id)}
-                              className="text-amber-700 dark:text-amber-400 font-semibold"
+                              onClick={() => setConfirmSubmitTarget(journal)}
+                              className="text-amber-700 dark:text-amber-400 font-semibold cursor-pointer"
                             >
                               <Send className="size-3.5 mr-2" />
                               Ajukan Persetujuan
@@ -392,6 +410,58 @@ export function JournalsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog Konfirmasi Pengajuan Jurnal */}
+      <AlertDialog open={!!confirmSubmitTarget} onOpenChange={(open) => !open && setConfirmSubmitTarget(null)}>
+        <AlertDialogContent size="default" className="sm:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Pengajuan Jurnal</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-muted-foreground space-y-2">
+              <span>
+                Apakah Anda yakin ingin mengajukan voucher jurnal ini ke antrean persetujuan (Maker-Checker)?
+              </span>
+              {confirmSubmitTarget && (
+                <span className="rounded-md border p-2.5 bg-muted/20 text-xs block text-left">
+                  <span className="font-semibold text-foreground block">
+                    Draft #{confirmSubmitTarget.id} — {confirmSubmitTarget.description}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground mt-0.5 block">
+                    Tanggal: {confirmSubmitTarget.entryDate} • Sumber: {confirmSubmitTarget.source}
+                  </span>
+                  <span className="font-mono text-primary font-bold mt-1 block">
+                    Total: <MoneyText amount={confirmSubmitTarget.totalAmount} />
+                  </span>
+                </span>
+              )}
+              <span className="text-[11px] text-muted-foreground block">
+                Setelah diajukan, status jurnal akan berubah menjadi <code>SUBMITTED</code> dan menunggu verifikasi oleh Checker sebelum diposting ke Buku Besar.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSubmitting}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+              disabled={isSubmitting}
+              onClick={(e) => {
+                e.preventDefault()
+                if (confirmSubmitTarget) {
+                  handleSubmitDraft(confirmSubmitTarget.id)
+                }
+              }}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="size-3.5 mr-1.5 animate-spin" />
+                  Mengajukan...
+                </>
+              ) : (
+                "Ya, Ajukan Persetujuan"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

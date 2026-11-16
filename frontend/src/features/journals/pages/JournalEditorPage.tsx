@@ -40,6 +40,17 @@ import {
 } from "@/components/ui/select"
 import { Field, FieldLabel, FieldDescription } from "@/components/ui/field"
 import { BalanceBar } from "@/components/shared/BalanceBar"
+import { MoneyText } from "@/components/shared/MoneyText"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import {
   Plus,
   Trash2,
@@ -79,6 +90,7 @@ export function JournalEditorPage() {
   const [description, setDescription] = React.useState("")
   const [reference, setReference] = React.useState("")
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [isConfirmSubmitOpen, setIsConfirmSubmitOpen] = React.useState(false)
 
   // Lines State (Minimal 2 baris)
   const [lines, setLines] = React.useState<LineEntry[]>([
@@ -262,6 +274,12 @@ export function JournalEditorPage() {
     }
   }
 
+  // Buka dialog konfirmasi sebelum submit ke persetujuan
+  const handleOpenSubmitConfirm = () => {
+    if (!validatePayload()) return
+    setIsConfirmSubmitOpen(true)
+  }
+
   // Buat Draf lalu langsung Submit ke Antrean Persetujuan (Maker)
   const handleSubmitJournal = async () => {
     if (!validatePayload()) return
@@ -292,6 +310,7 @@ export function JournalEditorPage() {
       })
 
       toast.success("Jurnal berhasil diajukan ke antrean persetujuan (Maker-Checker)!")
+      setIsConfirmSubmitOpen(false)
       navigate("/journals")
     } catch (err: any) {
       toast.error(err.message || "Gagal mengajukan jurnal")
@@ -534,9 +553,58 @@ export function JournalEditorPage() {
         totalCredit={totalCredit}
         onAddBalancingLine={handleAddBalancingLine}
         onSaveDraft={handleSaveDraft}
-        onSubmit={handleSubmitJournal}
+        onSubmit={handleOpenSubmitConfirm}
         isSubmitting={isSubmitting}
       />
+
+      {/* Dialog Konfirmasi Pengajuan Jurnal */}
+      <AlertDialog open={isConfirmSubmitOpen} onOpenChange={setIsConfirmSubmitOpen}>
+        <AlertDialogContent size="default" className="sm:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Pengajuan Jurnal Baru</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-muted-foreground space-y-2">
+              <span>
+                Apakah Anda yakin ingin mengajukan voucher jurnal ini ke antrean persetujuan (Maker-Checker)?
+              </span>
+              <span className="rounded-md border p-2.5 bg-muted/20 text-xs block text-left">
+                <span className="font-semibold text-foreground block">
+                  {description || "Tanpa uraian transaksi"}
+                </span>
+                <span className="text-[11px] text-muted-foreground mt-0.5 block">
+                  Tanggal: {entryDate} • {lines.length} baris pembukuan
+                  {reference && ` • Ref: ${reference}`}
+                </span>
+                <span className="font-mono text-primary font-bold mt-1 block">
+                  Total Transaksi: <MoneyText amount={totalDebit} />
+                </span>
+              </span>
+              <span className="text-[11px] text-muted-foreground block">
+                Setelah diajukan, voucher akan berstatus <code>SUBMITTED</code> dan dikunci dari pengubahan langsung hingga diperiksa oleh Checker.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSubmitting}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+              disabled={isSubmitting}
+              onClick={(e) => {
+                e.preventDefault()
+                handleSubmitJournal()
+              }}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="size-3.5 mr-1.5 animate-spin" />
+                  Mengajukan...
+                </>
+              ) : (
+                "Ya, Ajukan Jurnal"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

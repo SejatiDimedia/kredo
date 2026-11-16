@@ -26,6 +26,16 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Lock, Unlock, ShieldCheck, Loader2, RefreshCw } from "lucide-react"
 import { apiFetch } from "@/lib/api"
 
@@ -46,6 +56,10 @@ export function PeriodsPage() {
   const [periods, setPeriods] = React.useState<PeriodResponse[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [processingPeriodId, setProcessingPeriodId] = React.useState<number | null>(null)
+  const [confirmAction, setConfirmAction] = React.useState<{
+    type: "CLOSE" | "REOPEN"
+    period: PeriodResponse
+  } | null>(null)
 
   const loadPeriods = React.useCallback(async () => {
     try {
@@ -228,7 +242,7 @@ export function PeriodsPage() {
                           variant="outline"
                           className="text-xs cursor-pointer border-destructive/30 hover:bg-destructive/10 hover:text-destructive text-foreground"
                           disabled={processingPeriodId === period.id}
-                          onClick={() => handleClosePeriod(period)}
+                          onClick={() => setConfirmAction({ type: "CLOSE", period })}
                         >
                           {processingPeriodId === period.id ? (
                             <Loader2 className="size-3 mr-1 animate-spin" />
@@ -243,7 +257,7 @@ export function PeriodsPage() {
                           variant="ghost"
                           className="text-xs cursor-pointer text-primary hover:bg-primary/10"
                           disabled={processingPeriodId === period.id}
-                          onClick={() => handleReopenPeriod(period)}
+                          onClick={() => setConfirmAction({ type: "REOPEN", period })}
                         >
                           {processingPeriodId === period.id ? (
                             <Loader2 className="size-3 mr-1 animate-spin" />
@@ -263,6 +277,52 @@ export function PeriodsPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Confirmation Dialog for High-Impact Actions */}
+      <AlertDialog open={!!confirmAction} onOpenChange={(open) => !open && setConfirmAction(null)}>
+        <AlertDialogContent size="default">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmAction?.type === "CLOSE" ? "Konfirmasi Tutup Buku Periode" : "Konfirmasi Buka Kembali Periode"}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-muted-foreground">
+              {confirmAction?.type === "CLOSE" ? (
+                <>
+                  Apakah Anda yakin ingin melakukan <strong>Tutup Buku</strong> untuk periode{" "}
+                  <strong>{confirmAction?.period.name}</strong>?
+                  <br />
+                  <br />
+                  Sistem akan memastikan tidak ada jurnal gantung dan Neraca Saldo seimbang. Setelah ditutup, periode ini
+                  akan dikunci dari penambahan maupun posting jurnal baru.
+                </>
+              ) : (
+                <>
+                  Apakah Anda yakin ingin <strong>Membuka Kembali</strong> periode{" "}
+                  <strong>{confirmAction?.period.name}</strong>?
+                  <br />
+                  <br />
+                  Status periode akan dipulihkan menjadi <code>OPEN</code> sehingga penyesuaian audit dapat dilakukan.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              className={confirmAction?.type === "CLOSE" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
+              onClick={() => {
+                if (confirmAction?.type === "CLOSE") {
+                  handleClosePeriod(confirmAction.period)
+                } else if (confirmAction?.type === "REOPEN") {
+                  handleReopenPeriod(confirmAction.period)
+                }
+              }}
+            >
+              {confirmAction?.type === "CLOSE" ? "Ya, Tutup Buku" : "Ya, Buka Kembali"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -33,6 +33,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { MoneyText } from "@/components/shared/MoneyText"
@@ -48,6 +58,10 @@ export function ApprovalsPage() {
   const [rejectTarget, setRejectTarget] = React.useState<JournalResponse | null>(null)
   const [rejectReason, setRejectReason] = React.useState("")
   const [isRejecting, setIsRejecting] = React.useState(false)
+
+  // State untuk dialog konfirmasi persetujuan (Approve) & uji fraud
+  const [confirmApproveTarget, setConfirmApproveTarget] = React.useState<JournalResponse | null>(null)
+  const [confirmFraudTarget, setConfirmFraudTarget] = React.useState<JournalResponse | null>(null)
 
   // State loading untuk tombol approve
   const [approvingId, setApprovingId] = React.useState<number | null>(null)
@@ -260,9 +274,9 @@ export function ApprovalsPage() {
                         <Button
                           size="xs"
                           variant="ghost"
-                          className="text-[10px] text-amber-700 dark:text-amber-400 hover:bg-amber-500/10"
+                          className="text-[10px] text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 cursor-pointer"
                           title="Coba setujui sebagai pembuat sendiri untuk menguji sistem penolakan"
-                          onClick={() => handleTestFraud(draft)}
+                          onClick={() => setConfirmFraudTarget(draft)}
                           disabled={approvingId === draft.id}
                         >
                           Uji Fraud
@@ -271,8 +285,8 @@ export function ApprovalsPage() {
                         {/* Tombol Sah: Setujui & Posting sebagai Checker (Raka) */}
                         <Button
                           size="xs"
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[11px]"
-                          onClick={() => handleApproveValid(draft)}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[11px] cursor-pointer"
+                          onClick={() => setConfirmApproveTarget(draft)}
                           disabled={approvingId === draft.id}
                         >
                           {approvingId === draft.id ? (
@@ -351,6 +365,84 @@ export function ApprovalsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog Konfirmasi Setujui & Post */}
+      <AlertDialog open={!!confirmApproveTarget} onOpenChange={(open) => !open && setConfirmApproveTarget(null)}>
+        <AlertDialogContent size="default" className="sm:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Persetujuan Jurnal</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-muted-foreground space-y-2">
+              <span>
+                Apakah Anda yakin ingin menyetujui dan memposting draf jurnal ini ke Buku Besar?
+              </span>
+              {confirmApproveTarget && (
+                <span className="rounded-md border p-2.5 bg-muted/20 text-xs block text-left">
+                  <span className="font-semibold text-foreground block">
+                    Draft #{confirmApproveTarget.id} — {confirmApproveTarget.description}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground mt-0.5 block">
+                    Tanggal: {confirmApproveTarget.entryDate} • Pembuat: User ID {confirmApproveTarget.createdBy} (Dina)
+                  </span>
+                  <span className="font-mono text-emerald-700 dark:text-emerald-400 font-bold mt-1 block">
+                    Total: <MoneyText amount={confirmApproveTarget.totalAmount} />
+                  </span>
+                </span>
+              )}
+              <span className="text-[11px] text-amber-700 dark:text-amber-400 block">
+                Setelah disetujui, voucher akan memperoleh nomor urut resmi permanen dan saldo akun buku besar akan langsung diperbarui.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+              onClick={() => {
+                if (confirmApproveTarget) {
+                  const target = confirmApproveTarget
+                  setConfirmApproveTarget(null)
+                  handleApproveValid(target)
+                }
+              }}
+            >
+              Ya, Setujui & Posting
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog Konfirmasi Uji Fraud */}
+      <AlertDialog open={!!confirmFraudTarget} onOpenChange={(open) => !open && setConfirmFraudTarget(null)}>
+        <AlertDialogContent size="default" className="sm:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Pengujian Kontrol Fraud</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-muted-foreground space-y-2">
+              <span>
+                Tindakan ini akan menguji pertahanan sistem <strong>Segregation of Duties</strong> dengan mencoba menyetujui jurnal menggunakan akun pembuat (User ID 1 / Maker).
+              </span>
+              <span className="text-[11px] block">
+                Sistem backend dirancang untuk <strong>menolak keras</strong> percobaan ini dan mencatatnya sebagai pelanggaran aturan pembukuan. Lanjutkan pengujian?
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              variant="outline"
+              className="border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 font-semibold"
+              onClick={() => {
+                if (confirmFraudTarget) {
+                  const target = confirmFraudTarget
+                  setConfirmFraudTarget(null)
+                  handleTestFraud(target)
+                }
+              }}
+            >
+              Lanjutkan Pengujian
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
