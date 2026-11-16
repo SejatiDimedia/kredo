@@ -107,8 +107,8 @@ export function DesignSystemPage() {
           <div>
             <div className="mb-4 flex flex-col gap-1">
               <div className="flex items-center gap-2">
-                <h2 className="font-heading text-lg font-bold tracking-tight">Signature Component: Balance Bar (PRD 14.7)</h2>
-                <Badge variant="outline" className="border-primary/40 text-primary text-xs">PRD Fitur Kunci</Badge>
+                <h2 className="font-heading text-lg font-bold tracking-tight">Signature Component: Balance Bar</h2>
+                <Badge variant="outline" className="border-primary/40 text-primary text-xs">Fitur Kunci</Badge>
               </div>
               <p className="text-xs text-muted-foreground">
                 Bilah pemantau saldo debit dan kredit jurnal secara real-time:

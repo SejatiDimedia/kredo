@@ -286,7 +286,7 @@ export function GeneralLedgerPage() {
             Buku Besar Umum (General Ledger)
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Rincian mutasi debit, kredit, dan saldo berjalan (running balance) per akun buku besar (PRD 6.6 FR-LED-02).
+            Rincian mutasi debit, kredit, dan saldo berjalan (running balance) per akun buku besar.
           </p>
         </div>
 

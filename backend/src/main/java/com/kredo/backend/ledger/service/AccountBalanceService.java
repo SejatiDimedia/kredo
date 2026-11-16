@@ -30,7 +30,7 @@ public class AccountBalanceService {
 
     /**
      * Memperbarui tabel agregat account_balance saat jurnal di-POSTED.
-     * Mengikuti panduan PRD 12.1:
+     * Mekanisme pembaruan saldo akun:
      * 1. Agregasi baris jurnal per accountId.
      * 2. Urutkan berdasarkan accountId (menggunakan TreeMap) untuk mencegah
      * deadlock.
@@ -77,7 +77,7 @@ public class AccountBalanceService {
     }
 
     /**
-     * FR-LED-04: Rekalkulasi Saldo Seluruh Akun untuk satu periode dari tabel
+     * Rekalkulasi Saldo Seluruh Akun untuk satu periode dari tabel
      * journal_line.
      * Berguna jika butuh sinkronisasi ulang atau audit pemulihan.
      */

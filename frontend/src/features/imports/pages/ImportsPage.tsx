@@ -42,7 +42,7 @@ export function ImportsPage() {
 
       <Alert className="border-border/60 bg-muted/20">
         <CheckCircle2 className="size-4 text-primary" />
-        <AlertTitle className="text-xs font-semibold">Validasi Format CSV (PRD 9.2)</AlertTitle>
+        <AlertTitle className="text-xs font-semibold">Validasi Format CSV</AlertTitle>
         <AlertDescription className="text-xs text-muted-foreground">
           Kolom wajib pada berkas CSV: <code>journal_ref, entry_date, description, account_code, debit, credit, memo</code>. Pastikan setiap <code>journal_ref</code> memiliki total debit dan kredit yang seimbang.
         </AlertDescription>

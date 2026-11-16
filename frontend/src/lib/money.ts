@@ -12,7 +12,7 @@ export type MoneyInput = string | number | Decimal
 
 /**
  * Safely parse any input into a Decimal instance.
- * Throws an Error if input has more than 2 decimal places when strict is true (PRD FR-JRN-02).
+ * Throws an Error if input has more than 2 decimal places when strict is true.
  */
 export function toDecimal(val: MoneyInput, strict = false): Decimal {
   if (val instanceof Decimal) return val

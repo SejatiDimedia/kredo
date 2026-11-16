@@ -1,7 +1,7 @@
 package com.kredo.backend.journal.domain;
 
 /**
- * Sumber pencatatan jurnal (PRD Bab 8.3).
+ * Sumber pencatatan voucher jurnal akuntansi.
  */
 public enum JournalSource {
     MANUAL, // Dibuat manual oleh akuntan lewat form UI

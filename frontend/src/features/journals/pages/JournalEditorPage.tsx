@@ -39,12 +39,10 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Field, FieldLabel, FieldDescription } from "@/components/ui/field"
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { BalanceBar } from "@/components/shared/BalanceBar"
 import {
   Plus,
   Trash2,
-  Info,
   ArrowLeft,
   Loader2,
 } from "lucide-react"

@@ -291,10 +291,6 @@ export function AppShell() {
                   <ChevronDown className="size-3.5 text-sidebar-foreground/70 ml-auto group-data-[collapsible=icon]:hidden" />
                 </Button>
               </DropdownMenuTrigger>
-                  </div>
-                  <ChevronDown className="size-3.5 text-sidebar-foreground/70 ml-auto group-data-[collapsible=icon]:hidden" />
-                </Button>
-              </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 text-xs">
                 <DropdownMenuLabel>Simulasikan Peran (RBAC)</DropdownMenuLabel>
                 <DropdownMenuItem
@@ -371,7 +367,7 @@ export function AppShell() {
               <SidebarTrigger />
               <Separator orientation="vertical" className="h-4" />
 
-              {/* Entity Selector (PRD 6.2 & 14.4) */}
+              {/* Entity Selector */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="h-8 gap-2 text-xs font-semibold border-border/60">
@@ -405,7 +401,7 @@ export function AppShell() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Active Accounting Period Chip (PRD 14.8) */}
+              {/* Active Accounting Period Chip */}
               <Badge variant="outline" className="hidden sm:inline-flex items-center gap-1.5 text-xs font-normal border-teal-500/30 bg-teal-500/5">
                 <CalendarClock className="size-3 text-teal-700 dark:text-teal-400" />
                 <span>Nov 2026</span>
