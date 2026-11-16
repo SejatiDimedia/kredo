@@ -1,3 +1,4 @@
+import * as React from "react"
 import { useNavigate } from "react-router-dom"
 import {
   Breadcrumb,
@@ -25,10 +26,31 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { MoneyText } from "@/components/shared/MoneyText"
-import { Download, FileSpreadsheet, Printer, CheckCircle2, BookOpen } from "lucide-react"
+import { Download, FileSpreadsheet, Printer, CheckCircle2, AlertTriangle, BookOpen, Loader2 } from "lucide-react"
+import { apiFetch } from "@/lib/api"
+import type { TrialBalanceResponse } from "../types"
 
 export function ReportsPage() {
   const navigate = useNavigate()
+  const [trialBalance, setTrialBalance] = React.useState<TrialBalanceResponse | null>(null)
+  const [isLoading, setIsLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    async function loadData() {
+      try {
+        setIsLoading(true)
+        setError(null)
+        const data = await apiFetch<TrialBalanceResponse>("/api/v1/reports/trial-balance?entityId=1&periodId=11")
+        setTrialBalance(data)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Gagal memuat Neraca Saldo")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    loadData()
+  }, [])
 
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto">
@@ -92,71 +114,85 @@ export function ReportsPage() {
                   <TableRow className="border-b border-border/30 bg-muted/10 hover:bg-muted/10">
                     <TableHead className="w-[120px] pl-6 font-semibold">Kode Akun</TableHead>
                     <TableHead className="font-semibold">Nama Akun</TableHead>
-                    <TableHead className="w-[160px] text-right font-semibold">Saldo Awal</TableHead>
                     <TableHead className="w-[160px] text-right font-semibold">Mutasi Debit</TableHead>
                     <TableHead className="w-[160px] text-right font-semibold">Mutasi Kredit</TableHead>
                     <TableHead className="w-[160px] text-right pr-6 font-semibold">Saldo Akhir</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow className="border-b border-border/20 hover:bg-muted/10">
-                    <TableCell className="font-mono pl-6 text-primary font-bold text-xs py-3">
-                      <button
-                        type="button"
-                        onClick={() => navigate("/reports/general-ledger?account=1101")}
-                        className="hover:underline text-primary"
-                      >
-                        1101
-                      </button>
-                    </TableCell>
-                    <TableCell className="font-medium text-foreground text-xs py-3">Kas Kecil Operasional</TableCell>
-                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="0" /></TableCell>
-                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="100000000" /></TableCell>
-                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="20000000" /></TableCell>
-                    <TableCell className="text-right pr-6 font-bold text-xs font-mono py-3"><MoneyText amount="80000000" /></TableCell>
-                  </TableRow>
-                  <TableRow className="border-b border-border/20 hover:bg-muted/10">
-                    <TableCell className="font-mono pl-6 text-primary font-bold text-xs py-3">
-                      <button
-                        type="button"
-                        onClick={() => navigate("/reports/general-ledger?account=1201")}
-                        className="hover:underline text-primary"
-                      >
-                        1200
-                      </button>
-                    </TableCell>
-                    <TableCell className="font-medium text-foreground text-xs py-3">Piutang Usaha</TableCell>
-                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="0" /></TableCell>
-                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="15000000" /></TableCell>
-                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="0" /></TableCell>
-                    <TableCell className="text-right pr-6 font-bold text-xs font-mono py-3"><MoneyText amount="15000000" /></TableCell>
-                  </TableRow>
-                  <TableRow className="border-b border-border/20 hover:bg-muted/10">
-                    <TableCell className="font-mono pl-6 text-primary font-bold text-xs py-3">
-                      <button
-                        type="button"
-                        onClick={() => navigate("/reports/general-ledger?account=2101")}
-                        className="hover:underline text-primary"
-                      >
-                        1300
-                      </button>
-                    </TableCell>
-                    <TableCell className="font-medium text-foreground text-xs py-3">Persediaan Barang Dagang</TableCell>
-                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="0" /></TableCell>
-                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="20000000" /></TableCell>
-                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="0" /></TableCell>
-                    <TableCell className="text-right pr-6 font-bold text-xs font-mono py-3"><MoneyText amount="20000000" /></TableCell>
-                  </TableRow>
-                  <TableRow className="border-t-2 border-border/60 bg-muted/20 font-bold">
-                    <TableCell colSpan={3} className="pl-6 text-foreground text-xs py-3">TOTAL KESEIMBANGAN</TableCell>
-                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="135000000" className="font-bold text-foreground" /></TableCell>
-                    <TableCell className="text-right text-xs font-mono py-3"><MoneyText amount="135000000" className="font-bold text-foreground" /></TableCell>
-                    <TableCell className="text-right pr-6 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs py-3">
-                      <span className="inline-flex items-center gap-1">
-                        <CheckCircle2 className="size-3.5" /> SEIMBANG
-                      </span>
-                    </TableCell>
-                  </TableRow>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="py-12 text-center text-muted-foreground">
+                        <div className="flex items-center justify-center gap-2">
+                          <Loader2 className="size-4 animate-spin text-primary" />
+                          <span>Menghitung Neraca Saldo real-time...</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : error ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="py-8 text-center text-destructive">
+                        {error}
+                      </TableCell>
+                    </TableRow>
+                  ) : !trialBalance || trialBalance.rows.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                        Belum ada akun atau transaksi pada periode ini.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    <>
+                      {trialBalance.rows.map((row) => (
+                        <TableRow key={row.accountId} className="border-b border-border/20 hover:bg-muted/10">
+                          <TableCell className="font-mono pl-6 text-primary font-bold text-xs py-3">
+                            <button
+                              type="button"
+                              onClick={() => navigate(`/reports/general-ledger?accountId=${row.accountId}`)}
+                              className="hover:underline text-primary cursor-pointer text-left font-mono"
+                              title="Buka Buku Besar Akun ini"
+                            >
+                              {row.accountCode}
+                            </button>
+                          </TableCell>
+                          <TableCell className="font-medium text-foreground text-xs py-3">
+                            {row.accountName}
+                          </TableCell>
+                          <TableCell className="text-right text-xs font-mono py-3">
+                            <MoneyText amount={row.debitTotal} />
+                          </TableCell>
+                          <TableCell className="text-right text-xs font-mono py-3">
+                            <MoneyText amount={row.creditTotal} />
+                          </TableCell>
+                          <TableCell className="text-right pr-6 font-bold text-xs font-mono py-3">
+                            <MoneyText amount={row.endingBalance} />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow className="border-t-2 border-border/60 bg-muted/20 font-bold">
+                        <TableCell colSpan={2} className="pl-6 text-foreground text-xs py-3">
+                          TOTAL KESEIMBANGAN
+                        </TableCell>
+                        <TableCell className="text-right text-xs font-mono py-3">
+                          <MoneyText amount={trialBalance.totalDebit} className="font-bold text-foreground" />
+                        </TableCell>
+                        <TableCell className="text-right text-xs font-mono py-3">
+                          <MoneyText amount={trialBalance.totalCredit} className="font-bold text-foreground" />
+                        </TableCell>
+                        <TableCell className="text-right pr-6 text-xs py-3">
+                          {trialBalance.isBalanced ? (
+                            <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-extrabold">
+                              <CheckCircle2 className="size-3.5" /> SEIMBANG
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-destructive font-extrabold">
+                              <AlertTriangle className="size-3.5" /> TIDAK SEIMBANG
+                            </span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    </>
+                  )}
                 </TableBody>
               </Table>
             </CardContent>

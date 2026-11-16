@@ -1,8 +1,6 @@
 import * as React from "react"
 import { useSearchParams, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
-import Decimal from "decimal.js"
-import { toDecimal } from "@/lib/money"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -28,7 +26,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -42,223 +39,102 @@ import { MoneyText } from "@/components/shared/MoneyText"
 import {
   Download,
   Printer,
-  Calendar,
   BookOpen,
   ArrowUpRight,
+  Loader2,
+  CalendarClock,
 } from "lucide-react"
+import { apiFetch } from "@/lib/api"
+import type { GeneralLedgerResponse } from "../types"
 
-interface LedgerTransaction {
-  id: string
-  date: string
-  journalNo: string
-  description: string
-  memo: string
-  debit: string
-  credit: string
-}
-
-interface AccountLedgerData {
+interface AccountOption {
+  id: number
   code: string
   name: string
-  category: "ASSET" | "LIABILITY" | "EQUITY" | "REVENUE" | "EXPENSE"
-  normalBalance: "DEBIT" | "CREDIT"
-  openingBalance: string
-  transactions: LedgerTransaction[]
-}
-
-const LEDGER_ACCOUNTS: Record<string, AccountLedgerData> = {
-  "1101": {
-    code: "1101",
-    name: "Kas Kecil Operasional",
-    category: "ASSET",
-    normalBalance: "DEBIT",
-    openingBalance: "5000000",
-    transactions: [
-      {
-        id: "tx-1",
-        date: "14 Nov 2026",
-        journalNo: "JV-PTM-2026-000001",
-        description: "Setoran Modal Pemilik Tunai",
-        memo: "Kas masuk setoran awal modal disetor",
-        debit: "100000000",
-        credit: "0",
-      },
-      {
-        id: "tx-2",
-        date: "14 Nov 2026",
-        journalNo: "JV-PTM-2026-000002",
-        description: "Pembelian Persediaan Barang Dagang",
-        memo: "Pembayaran tunai persediaan ke supplier",
-        debit: "0",
-        credit: "20000000",
-      },
-      {
-        id: "tx-3",
-        date: "15 Nov 2026",
-        journalNo: "JV-PTM-2026-000006",
-        description: "Beban Operasional & Konsumsi Kantor",
-        memo: "Reimbursement kas kecil petty cash",
-        debit: "0",
-        credit: "5000000",
-      },
-    ],
-  },
-  "1102": {
-    code: "1102",
-    name: "Bank BCA Operasional",
-    category: "ASSET",
-    normalBalance: "DEBIT",
-    openingBalance: "80000000",
-    transactions: [
-      {
-        id: "tx-4",
-        date: "14 Nov 2026",
-        journalNo: "JV-PTM-2026-000004",
-        description: "Penerimaan Pelunasan Piutang Pelanggan",
-        memo: "Transfer masuk PT Mitra Sejahtera",
-        debit: "32500000",
-        credit: "0",
-      },
-      {
-        id: "tx-5",
-        date: "15 Nov 2026",
-        journalNo: "JV-PTM-2026-000005",
-        description: "Pembayaran Beban Sewa Kantor Cabang",
-        memo: "Transfer keluar via KlikBCA Bisnis",
-        debit: "0",
-        credit: "12500000",
-      },
-    ],
-  },
-  "1201": {
-    code: "1201",
-    name: "Piutang Dagang Pihak Ketiga",
-    category: "ASSET",
-    normalBalance: "DEBIT",
-    openingBalance: "0",
-    transactions: [
-      {
-        id: "tx-6",
-        date: "15 Nov 2026",
-        journalNo: "JV-PTM-2026-000003",
-        description: "Penjualan Kredit Barang Dagang",
-        memo: "Faktur INV/2026/11/0088 termin 30 hari",
-        debit: "15000000",
-        credit: "0",
-      },
-    ],
-  },
-  "2101": {
-    code: "2101",
-    name: "Utang Usaha Vendor",
-    category: "LIABILITY",
-    normalBalance: "CREDIT",
-    openingBalance: "15000000",
-    transactions: [
-      {
-        id: "tx-7",
-        date: "14 Nov 2026",
-        journalNo: "JV-PTM-2026-000002",
-        description: "Pembelian Persediaan Barang Dagang",
-        memo: "Faktur supplier jatuh tempo 30 hari",
-        debit: "0",
-        credit: "20000000",
-      },
-    ],
-  },
-  "4101": {
-    code: "4101",
-    name: "Pendapatan Penjualan Produk",
-    category: "REVENUE",
-    normalBalance: "CREDIT",
-    openingBalance: "435000000",
-    transactions: [
-      {
-        id: "tx-8",
-        date: "15 Nov 2026",
-        journalNo: "JV-PTM-2026-000003",
-        description: "Penjualan Kredit Barang Dagang",
-        memo: "Pengakuan pendapatan atas faktur INV/2026/11/0088",
-        debit: "0",
-        credit: "15000000",
-      },
-    ],
-  },
-  "6201": {
-    code: "6201",
-    name: "Beban Sewa Kantor Cabang",
-    category: "EXPENSE",
-    normalBalance: "DEBIT",
-    openingBalance: "0",
-    transactions: [
-      {
-        id: "tx-9",
-        date: "15 Nov 2026",
-        journalNo: "JV-PTM-2026-000005",
-        description: "Pembayaran Beban Sewa Kantor Cabang",
-        memo: "Sewa gedung lantai 3 periode Nov 2026",
-        debit: "12500000",
-        credit: "0",
-      },
-    ],
-  },
+  type: string
+  isPostable: boolean
 }
 
 export function GeneralLedgerPage() {
-  const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
 
-  // Selected Account Code (from URL query or default to 1101)
-  const initialAccount = searchParams.get("account") || "1101"
-  const [selectedCode, setSelectedCode] = React.useState<string>(
-    LEDGER_ACCOUNTS[initialAccount] ? initialAccount : "1101"
-  )
+  const [accounts, setAccounts] = React.useState<AccountOption[]>([])
+  const [selectedAccountId, setSelectedAccountId] = React.useState<number | null>(null)
+  const [ledgerData, setLedgerData] = React.useState<GeneralLedgerResponse | null>(null)
+  const [isLoadingAccounts, setIsLoadingAccounts] = React.useState(true)
+  const [isLoadingLedger, setIsLoadingLedger] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
 
-  // Date Filter State
-  const [startDate, setStartDate] = React.useState("2026-11-01")
-  const [endDate, setEndDate] = React.useState("2026-11-30")
+  // 1. Fetch Daftar Akun
+  React.useEffect(() => {
+    async function loadAccounts() {
+      try {
+        setIsLoadingAccounts(true)
+        const accList = await apiFetch<AccountOption[]>("/api/v1/accounts?entityId=1")
+        const postableOnly = accList.filter((a) => a.isPostable)
+        setAccounts(postableOnly)
 
-  // Current Account Data
-  const accountData = LEDGER_ACCOUNTS[selectedCode] || LEDGER_ACCOUNTS["1101"]
+        // Tentukan akun default: dari query param accountId/account atau akun pertama
+        const queryAccountId = searchParams.get("accountId")
+        const queryCode = searchParams.get("account")
 
-  // Calculate Running Balances
-  const calculatedRows = React.useMemo(() => {
-    let currentBalance = toDecimal(accountData.openingBalance)
-    let totalDebitSum = new Decimal(0)
-    let totalCreditSum = new Decimal(0)
+        let initialAccount: AccountOption | undefined
+        if (queryAccountId) {
+          initialAccount = postableOnly.find((a) => a.id === Number(queryAccountId))
+        } else if (queryCode) {
+          initialAccount = postableOnly.find((a) => a.code === queryCode)
+        }
 
-    const rowsWithBalance = accountData.transactions.map((tx) => {
-      const debitDec = toDecimal(tx.debit || 0)
-      const creditDec = toDecimal(tx.credit || 0)
+        if (!initialAccount && postableOnly.length > 0) {
+          initialAccount = postableOnly.find((a) => a.code === "1101") || postableOnly[0]
+        }
 
-      totalDebitSum = totalDebitSum.plus(debitDec)
-      totalCreditSum = totalCreditSum.plus(creditDec)
-
-      if (accountData.normalBalance === "DEBIT") {
-        currentBalance = currentBalance.plus(debitDec).minus(creditDec)
-      } else {
-        currentBalance = currentBalance.plus(creditDec).minus(debitDec)
+        if (initialAccount) {
+          setSelectedAccountId(initialAccount.id)
+        }
+      } catch (err) {
+        toast.error("Gagal memuat daftar akun buku besar")
+      } finally {
+        setIsLoadingAccounts(false)
       }
-
-      return {
-        ...tx,
-        runningBalance: currentBalance,
-      }
-    })
-
-    return {
-      rows: rowsWithBalance,
-      totalDebit: totalDebitSum,
-      totalCredit: totalCreditSum,
-      endingBalance: currentBalance,
     }
-  }, [accountData])
 
-  // Handle Account Change
-  const handleAccountSelect = (code: string) => {
-    setSelectedCode(code)
-    setSearchParams({ account: code })
+    loadAccounts()
+  }, [searchParams])
+
+  // 2. Fetch Mutasi Buku Besar saat selectedAccountId berubah
+  React.useEffect(() => {
+    if (!selectedAccountId) return
+
+    async function loadLedger(accId: number) {
+      try {
+        setIsLoadingLedger(true)
+        setError(null)
+        const data = await apiFetch<GeneralLedgerResponse>(
+          `/api/v1/reports/general-ledger?entityId=1&periodId=11&accountId=${accId}`
+        )
+        setLedgerData(data)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Gagal memuat buku besar")
+      } finally {
+        setIsLoadingLedger(false)
+      }
+    }
+
+    loadLedger(selectedAccountId)
+  }, [selectedAccountId])
+
+  const handleAccountSelect = (accountIdStr: string) => {
+    const accId = Number(accountIdStr)
+    setSelectedAccountId(accId)
+    const acc = accounts.find((a) => a.id === accId)
+    if (acc) {
+      setSearchParams({ accountId: String(accId), account: acc.code })
+    }
   }
+
+  const selectedAccount = accounts.find((a) => a.id === selectedAccountId)
 
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto">
@@ -302,28 +178,31 @@ export function GeneralLedgerPage() {
         </div>
       </div>
 
-      {/* Account Selector and Date Filter Card */}
+      {/* Account Selector Card */}
       <Card>
         <CardHeader className="border-b border-border/30 pb-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-            {/* Account Selector */}
-            <div className="space-y-1.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1.5 w-full sm:max-w-md">
               <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                 <BookOpen className="size-3.5 text-primary" />
                 Pilih Akun Buku Besar (Postable)
               </label>
-              <Select value={selectedCode} onValueChange={handleAccountSelect}>
+              <Select
+                value={selectedAccountId ? String(selectedAccountId) : ""}
+                onValueChange={handleAccountSelect}
+                disabled={isLoadingAccounts}
+              >
                 <SelectTrigger className="text-xs h-9">
-                  <SelectValue placeholder="Pilih Akun..." />
+                  <SelectValue placeholder={isLoadingAccounts ? "Memuat akun..." : "Pilih Akun..."} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectLabel>Akun Aktif</SelectLabel>
-                    {Object.values(LEDGER_ACCOUNTS).map((acc) => (
-                      <SelectItem key={acc.code} value={acc.code} className="text-xs">
+                    <SelectLabel>Akun Aktif Entitas</SelectLabel>
+                    {accounts.map((acc) => (
+                      <SelectItem key={acc.id} value={String(acc.id)} className="text-xs">
                         <span className="font-mono font-semibold text-primary mr-1.5">{acc.code}</span>
                         <span>{acc.name}</span>
-                        <span className="text-[10px] text-muted-foreground ml-2">({acc.category})</span>
+                        <span className="text-[10px] text-muted-foreground ml-2">({acc.type})</span>
                       </SelectItem>
                     ))}
                   </SelectGroup>
@@ -331,32 +210,9 @@ export function GeneralLedgerPage() {
               </Select>
             </div>
 
-            {/* Date Range Start */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                <Calendar className="size-3.5 text-muted-foreground" />
-                Dari Tanggal
-              </label>
-              <Input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="text-xs h-9 font-mono"
-              />
-            </div>
-
-            {/* Date Range End */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                <Calendar className="size-3.5 text-muted-foreground" />
-                Sampai Tanggal
-              </label>
-              <Input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="text-xs h-9 font-mono"
-              />
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <CalendarClock className="size-4 text-primary" />
+              <span>Periode Aktif: <strong>November 2026</strong> (Bulan ke-11)</span>
             </div>
           </div>
         </CardHeader>
@@ -365,10 +221,10 @@ export function GeneralLedgerPage() {
         <CardContent className="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
           <div className="p-3 rounded-lg border border-border/40 bg-muted/10">
             <span className="text-muted-foreground block text-[11px] uppercase font-semibold">
-              Saldo Awal ({startDate})
+              Saldo Awal (Nov 2026)
             </span>
             <div className="font-mono text-base font-bold text-foreground mt-1 tabular-nums">
-              <MoneyText amount={accountData.openingBalance} />
+              <MoneyText amount={ledgerData?.beginningBalance ?? "0"} />
             </div>
           </div>
 
@@ -377,7 +233,7 @@ export function GeneralLedgerPage() {
               Total Mutasi Debit
             </span>
             <div className="font-mono text-base font-bold text-foreground mt-1 tabular-nums">
-              <MoneyText amount={calculatedRows.totalDebit} />
+              <MoneyText amount={ledgerData?.totalDebit ?? "0"} />
             </div>
           </div>
 
@@ -386,16 +242,16 @@ export function GeneralLedgerPage() {
               Total Mutasi Kredit
             </span>
             <div className="font-mono text-base font-bold text-foreground mt-1 tabular-nums">
-              <MoneyText amount={calculatedRows.totalCredit} />
+              <MoneyText amount={ledgerData?.totalCredit ?? "0"} />
             </div>
           </div>
 
           <div className="p-3 rounded-lg border border-teal-500/30 bg-teal-500/5">
             <span className="text-teal-700 dark:text-teal-400 block text-[11px] uppercase font-semibold">
-              Saldo Akhir ({endDate})
+              Saldo Akhir Berjalan
             </span>
             <div className="font-mono text-base font-extrabold text-foreground mt-1 tabular-nums">
-              <MoneyText amount={calculatedRows.endingBalance} />
+              <MoneyText amount={ledgerData?.endingBalance ?? "0"} />
             </div>
           </div>
         </CardContent>
@@ -407,14 +263,16 @@ export function GeneralLedgerPage() {
           <div>
             <div className="flex items-center gap-2">
               <CardTitle className="text-sm font-semibold">
-                Kartu Buku Besar: {accountData.code} — {accountData.name}
+                Kartu Buku Besar: {ledgerData?.accountCode || selectedAccount?.code || "—"} — {ledgerData?.accountName || selectedAccount?.name || ""}
               </CardTitle>
-              <Badge variant="outline" className="text-[10px]">
-                Saldo Normal: {accountData.normalBalance}
-              </Badge>
+              {ledgerData && (
+                <Badge variant="outline" className="text-[10px]">
+                  Saldo Normal: {ledgerData.normalBalance}
+                </Badge>
+              )}
             </div>
             <CardDescription className="text-xs">
-              Semua mutasi telah diverifikasi seimbang dan dibukukan dari jurnal berstatus <code>POSTED</code>.
+              Semua mutasi dibukukan secara otomatis dari jurnal berstatus <code>POSTED</code>.
             </CardDescription>
           </div>
         </CardHeader>
@@ -424,7 +282,7 @@ export function GeneralLedgerPage() {
             <TableHeader>
               <TableRow className="border-b border-border/30 bg-muted/10 hover:bg-muted/10">
                 <TableHead className="w-[110px] pl-6 font-semibold">Tanggal</TableHead>
-                <TableHead className="w-[170px] font-semibold">No. Jurnal</TableHead>
+                <TableHead className="w-[180px] font-semibold">No. Jurnal</TableHead>
                 <TableHead className="font-semibold">Deskripsi Transaksi</TableHead>
                 <TableHead className="font-semibold">Memo Baris</TableHead>
                 <TableHead className="w-[140px] text-right font-semibold">Debit (IDR)</TableHead>
@@ -433,73 +291,117 @@ export function GeneralLedgerPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {/* Row 0: Opening Balance Row */}
-              <TableRow className="border-b border-border/20 bg-muted/5 font-medium">
-                <TableCell className="pl-6 font-mono text-xs text-muted-foreground py-2.5">
-                  {startDate}
-                </TableCell>
-                <TableCell className="font-mono text-xs text-muted-foreground py-2.5">
-                  —
-                </TableCell>
-                <TableCell colSpan={2} className="text-xs font-semibold text-foreground py-2.5">
-                  SALDO AWAL (OPENING BALANCE)
-                </TableCell>
-                <TableCell className="text-right text-xs font-mono py-2.5">—</TableCell>
-                <TableCell className="text-right text-xs font-mono py-2.5">—</TableCell>
-                <TableCell className="text-right pr-6 text-xs font-mono font-bold text-foreground py-2.5">
-                  <MoneyText amount={accountData.openingBalance} />
-                </TableCell>
-              </TableRow>
-
-              {/* Transaction Rows with Running Balance */}
-              {calculatedRows.rows.map((row) => (
-                <TableRow key={row.id} className="border-b border-border/20 hover:bg-muted/10 transition-colors">
-                  <TableCell className="pl-6 font-mono text-xs text-muted-foreground py-3">
-                    {row.date}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs py-3">
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/journals/${row.journalNo}`)}
-                      className="font-semibold text-primary hover:underline inline-flex items-center gap-1"
-                    >
-                      {row.journalNo}
-                      <ArrowUpRight className="size-3" />
-                    </button>
-                  </TableCell>
-                  <TableCell className="text-xs font-medium text-foreground py-3">
-                    {row.description}
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground py-3">
-                    {row.memo}
-                  </TableCell>
-                  <TableCell className="text-right text-xs font-mono py-3">
-                    {row.debit !== "0" ? <MoneyText amount={row.debit} /> : <span className="text-muted-foreground">—</span>}
-                  </TableCell>
-                  <TableCell className="text-right text-xs font-mono py-3">
-                    {row.credit !== "0" ? <MoneyText amount={row.credit} /> : <span className="text-muted-foreground">—</span>}
-                  </TableCell>
-                  <TableCell className="text-right pr-6 text-xs font-mono font-bold text-foreground py-3">
-                    <MoneyText amount={row.runningBalance} />
+              {isLoadingLedger ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="size-4 animate-spin text-primary" />
+                      <span>Memuat mutasi buku besar...</span>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : error ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="py-8 text-center text-destructive">
+                    {error}
+                  </TableCell>
+                </TableRow>
+              ) : !ledgerData || ledgerData.lines.length === 0 ? (
+                <>
+                  {/* Row 0: Opening Balance Row */}
+                  <TableRow className="border-b border-border/20 bg-muted/5 font-medium">
+                    <TableCell className="pl-6 font-mono text-xs text-muted-foreground py-2.5">
+                      01 Nov 2026
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground py-2.5">
+                      —
+                    </TableCell>
+                    <TableCell colSpan={2} className="text-xs font-semibold text-foreground py-2.5">
+                      SALDO AWAL (OPENING BALANCE)
+                    </TableCell>
+                    <TableCell className="text-right text-xs font-mono py-2.5">—</TableCell>
+                    <TableCell className="text-right text-xs font-mono py-2.5">—</TableCell>
+                    <TableCell className="text-right pr-6 text-xs font-mono font-bold text-foreground py-2.5">
+                      <MoneyText amount={ledgerData?.beginningBalance ?? "0"} />
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={7} className="py-10 text-center text-xs text-muted-foreground">
+                      Belum ada transaksi POSTED pada akun ini di periode berjalan.
+                    </TableCell>
+                  </TableRow>
+                </>
+              ) : (
+                <>
+                  {/* Row 0: Opening Balance Row */}
+                  <TableRow className="border-b border-border/20 bg-muted/5 font-medium">
+                    <TableCell className="pl-6 font-mono text-xs text-muted-foreground py-2.5">
+                      01 Nov 2026
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground py-2.5">
+                      —
+                    </TableCell>
+                    <TableCell colSpan={2} className="text-xs font-semibold text-foreground py-2.5">
+                      SALDO AWAL (OPENING BALANCE)
+                    </TableCell>
+                    <TableCell className="text-right text-xs font-mono py-2.5">—</TableCell>
+                    <TableCell className="text-right text-xs font-mono py-2.5">—</TableCell>
+                    <TableCell className="text-right pr-6 text-xs font-mono font-bold text-foreground py-2.5">
+                      <MoneyText amount={ledgerData.beginningBalance} />
+                    </TableCell>
+                  </TableRow>
 
-              {/* Total Summary Row */}
-              <TableRow className="border-t-2 border-border/60 bg-muted/20 font-bold">
-                <TableCell colSpan={4} className="pl-6 text-foreground text-xs py-3">
-                  TOTAL MUTASI & SALDO AKHIR ({accountData.code} — {accountData.name})
-                </TableCell>
-                <TableCell className="text-right text-xs font-mono py-3">
-                  <MoneyText amount={calculatedRows.totalDebit} className="font-bold text-foreground" />
-                </TableCell>
-                <TableCell className="text-right text-xs font-mono py-3">
-                  <MoneyText amount={calculatedRows.totalCredit} className="font-bold text-foreground" />
-                </TableCell>
-                <TableCell className="text-right pr-6 text-xs font-mono font-extrabold text-foreground py-3">
-                  <MoneyText amount={calculatedRows.endingBalance} className="font-extrabold text-foreground" />
-                </TableCell>
-              </TableRow>
+                  {/* Transaction Rows with Running Balance */}
+                  {ledgerData.lines.map((line) => (
+                    <TableRow key={line.lineId} className="border-b border-border/20 hover:bg-muted/10 transition-colors">
+                      <TableCell className="pl-6 font-mono text-xs text-muted-foreground py-3">
+                        {line.entryDate}
+                      </TableCell>
+                      <TableCell className="font-mono text-xs py-3">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/journals/${line.journalId}`)}
+                          className="font-semibold text-primary hover:underline inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          {line.journalNo}
+                          <ArrowUpRight className="size-3" />
+                        </button>
+                      </TableCell>
+                      <TableCell className="text-xs font-medium text-foreground py-3">
+                        {line.description}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground py-3">
+                        {line.memo || "—"}
+                      </TableCell>
+                      <TableCell className="text-right text-xs font-mono py-3">
+                        {Number(line.debit) !== 0 ? <MoneyText amount={line.debit} /> : <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell className="text-right text-xs font-mono py-3">
+                        {Number(line.credit) !== 0 ? <MoneyText amount={line.credit} /> : <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell className="text-right pr-6 text-xs font-mono font-bold text-foreground py-3">
+                        <MoneyText amount={line.runningBalance} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                  {/* Total Summary Row */}
+                  <TableRow className="border-t-2 border-border/60 bg-muted/20 font-bold">
+                    <TableCell colSpan={4} className="pl-6 text-foreground text-xs py-3">
+                      TOTAL MUTASI & SALDO AKHIR ({ledgerData.accountCode} — {ledgerData.accountName})
+                    </TableCell>
+                    <TableCell className="text-right text-xs font-mono py-3">
+                      <MoneyText amount={ledgerData.totalDebit} className="font-bold text-foreground" />
+                    </TableCell>
+                    <TableCell className="text-right text-xs font-mono py-3">
+                      <MoneyText amount={ledgerData.totalCredit} className="font-bold text-foreground" />
+                    </TableCell>
+                    <TableCell className="text-right pr-6 text-xs font-mono font-extrabold text-foreground py-3">
+                      <MoneyText amount={ledgerData.endingBalance} className="font-extrabold text-foreground" />
+                    </TableCell>
+                  </TableRow>
+                </>
+              )}
             </TableBody>
           </Table>
         </CardContent>
