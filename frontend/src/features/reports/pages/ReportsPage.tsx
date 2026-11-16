@@ -53,22 +53,43 @@ export function ReportsPage() {
   const [incomeStatement, setIncomeStatement] = React.useState<IncomeStatementResponse | null>(null)
   const [balanceSheet, setBalanceSheet] = React.useState<BalanceSheetResponse | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
-  const [error, setError] = React.useState<string | null>(null)
+  const [tbError, setTbError] = React.useState<string | null>(null)
+  const [isError, setIsError] = React.useState<string | null>(null)
+  const [bsError, setBsError] = React.useState<string | null>(null)
 
   const loadAllReports = React.useCallback(async () => {
     try {
       setIsLoading(true)
-      setError(null)
-      const [tbData, isData, bsData] = await Promise.all([
+      setTbError(null)
+      setIsError(null)
+      setBsError(null)
+
+      const [tbResult, isResult, bsResult] = await Promise.allSettled([
         apiFetch<TrialBalanceResponse>("/reports/trial-balance?entityId=1&periodId=11"),
         apiFetch<IncomeStatementResponse>("/reports/income-statement?entityId=1&periodId=11"),
         apiFetch<BalanceSheetResponse>("/reports/balance-sheet?entityId=1&periodId=11"),
       ])
-      setTrialBalance(tbData)
-      setIncomeStatement(isData)
-      setBalanceSheet(bsData)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal memuat laporan keuangan")
+
+      if (tbResult.status === "fulfilled") {
+        setTrialBalance(tbResult.value)
+      } else {
+        const msg = tbResult.reason instanceof Error ? tbResult.reason.message : "Gagal memuat Neraca Saldo"
+        setTbError(msg)
+      }
+
+      if (isResult.status === "fulfilled") {
+        setIncomeStatement(isResult.value)
+      } else {
+        const msg = isResult.reason instanceof Error ? isResult.reason.message : "Gagal memuat Laba Rugi"
+        setIsError(msg)
+      }
+
+      if (bsResult.status === "fulfilled") {
+        setBalanceSheet(bsResult.value)
+      } else {
+        const msg = bsResult.reason instanceof Error ? bsResult.reason.message : "Gagal memuat Neraca"
+        setBsError(msg)
+      }
     } finally {
       setIsLoading(false)
     }
@@ -188,10 +209,16 @@ export function ReportsPage() {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ) : error ? (
+                  ) : tbError ? (
                     <TableRow>
                       <TableCell colSpan={5} className="py-8 text-center text-destructive text-xs">
-                        {error}
+                        <div className="flex flex-col items-center justify-center gap-1.5">
+                          <AlertTriangle className="size-5 text-destructive" />
+                          <span className="font-semibold">{tbError}</span>
+                          <span className="text-[11px] text-muted-foreground">
+                            Pastikan backend Spring Boot aktif di <code>http://localhost:8080</code>
+                          </span>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ) : !trialBalance || trialBalance.rows.length === 0 ? (
@@ -260,7 +287,24 @@ export function ReportsPage() {
 
         {/* TAB 2: LABA RUGI (INCOME STATEMENT) */}
         <TabsContent value="income-statement" className="space-y-6">
-          {/* Summary Metric Cards */}
+          {isError ? (
+            <Card>
+              <CardContent className="py-12 text-center text-destructive text-xs">
+                <div className="flex flex-col items-center justify-center gap-1.5 max-w-md mx-auto">
+                  <AlertTriangle className="size-6 text-destructive" />
+                  <span className="font-semibold text-sm">{isError}</span>
+                  <span className="text-[11px] text-muted-foreground">
+                    Gagal memuat data dari <code>/api/v1/reports/income-statement</code>. Pastikan backend Spring Boot sedang berjalan dan controller telah di-restart.
+                  </span>
+                  <Button variant="outline" size="sm" onClick={loadAllReports} className="mt-3 text-xs gap-1.5">
+                    <RefreshCw className="size-3.5" /> Coba Muat Ulang
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              {/* Summary Metric Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Card>
               <CardContent className="p-4">
@@ -468,11 +512,30 @@ export function ReportsPage() {
               </CardContent>
             </Card>
           </div>
+            </>
+          )}
         </TabsContent>
 
         {/* TAB 3: NERACA (BALANCE SHEET) */}
         <TabsContent value="balance-sheet" className="space-y-6">
-          {/* Accounting Invariant Strip */}
+          {bsError ? (
+            <Card>
+              <CardContent className="py-12 text-center text-destructive text-xs">
+                <div className="flex flex-col items-center justify-center gap-1.5 max-w-md mx-auto">
+                  <AlertTriangle className="size-6 text-destructive" />
+                  <span className="font-semibold text-sm">{bsError}</span>
+                  <span className="text-[11px] text-muted-foreground">
+                    Gagal memuat data dari <code>/api/v1/reports/balance-sheet</code>. Pastikan backend Spring Boot sedang berjalan dan controller telah di-restart.
+                  </span>
+                  <Button variant="outline" size="sm" onClick={loadAllReports} className="mt-3 text-xs gap-1.5">
+                    <RefreshCw className="size-3.5" /> Coba Muat Ulang
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              {/* Accounting Invariant Strip */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-border/60 bg-muted/20 p-4">
             <div className="flex items-center gap-3">
               <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -691,6 +754,8 @@ export function ReportsPage() {
               </CardContent>
             </Card>
           </div>
+            </>
+          )}
         </TabsContent>
       </Tabs>
     </div>
