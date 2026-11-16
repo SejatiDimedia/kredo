@@ -207,6 +207,156 @@ public class JournalService {
     }
 
     /**
+     * Transisi: DRAFT -> SUBMITTED
+     * Mengajukan jurnal draft ke antrean persetujuan (Maker).
+     */
+    @Transactional
+    public JournalResponse submitJournal(Long entityId, Long journalId, Long userId) {
+        JournalEntry journal = journalEntryRepository.findByEntityIdAndId(entityId, journalId)
+                .orElseThrow(() -> new IllegalArgumentException("Jurnal dengan ID " + journalId + " tidak ditemukan."));
+
+        if (journal.getStatus() != JournalStatus.DRAFT) {
+            throw new IllegalStateException(
+                    "Hanya jurnal berstatus DRAFT yang dapat diajukan (status saat ini: " + journal.getStatus() + ").");
+        }
+
+        journal.setStatus(JournalStatus.SUBMITTED);
+        journal.setSubmittedBy(userId);
+
+        JournalEntry saved = journalEntryRepository.save(journal);
+        return JournalResponse.fromEntity(saved);
+    }
+
+    /**
+     * Transisi: SUBMITTED -> APPROVED (atau langsung POSTED jika postImmediately =
+     * true)
+     * Penyetuju tidak boleh sama dengan
+     * pembuat/pengaju!
+     */
+    @Transactional
+    public JournalResponse approveJournal(Long entityId, Long journalId, Long approverId, boolean postImmediately) {
+        JournalEntry journal = journalEntryRepository.findByEntityIdAndId(entityId, journalId)
+                .orElseThrow(() -> new IllegalArgumentException("Jurnal dengan ID " + journalId + " tidak ditemukan."));
+
+        if (journal.getStatus() != JournalStatus.SUBMITTED) {
+            throw new IllegalStateException("Hanya jurnal berstatus SUBMITTED yang dapat disetujui (status saat ini: "
+                    + journal.getStatus() + ").");
+        }
+
+        // Penegakan Aturan Maker-Checker (INV-06)
+        if (approverId.equals(journal.getCreatedBy()) ||
+                (journal.getSubmittedBy() != null && approverId.equals(journal.getSubmittedBy()))) {
+            throw new IllegalStateException(
+                    "Pelanggaran Maker-Checker (INV-06): Pembuat atau pengaju jurnal tidak boleh menyetujui jurnalnya sendiri!");
+        }
+
+        journal.setApprovedBy(approverId);
+
+        if (postImmediately) {
+            // Validasi periode tetap harus OPEN saat diposting
+            AccountingPeriod period = accountingPeriodRepository.findByEntityIdAndId(entityId, journal.getPeriodId())
+                    .orElseThrow(() -> new IllegalStateException("Periode akuntansi tidak ditemukan."));
+            if (!period.isOpen()) {
+                throw new IllegalStateException("Posting gagal: Periode akuntansi telah ditutup (INV-08).");
+            }
+
+            // Alokasikan nomor resmi tanpa celah
+            String journalNo = generateGaplessJournalNo(entityId, journal.getEntryDate().getYear());
+            journal.setJournalNo(journalNo);
+            journal.setStatus(JournalStatus.POSTED);
+            journal.setPostedBy(approverId);
+            journal.setPostedAt(OffsetDateTime.now());
+
+            JournalEntry saved = journalEntryRepository.save(journal);
+
+            // Perbarui saldo rekening otomatis
+            accountBalanceService.updateBalancesForJournal(saved);
+
+            return JournalResponse.fromEntity(saved);
+        } else {
+            journal.setStatus(JournalStatus.APPROVED);
+            JournalEntry saved = journalEntryRepository.save(journal);
+            return JournalResponse.fromEntity(saved);
+        }
+    }
+
+    /**
+     * Transisi: SUBMITTED -> DRAFT (Penolakan oleh Checker)
+     * Mengembalikan jurnal ke status DRAFT dengan alasan penolakan.
+     */
+    @Transactional
+    public JournalResponse rejectJournal(Long entityId, Long journalId, Long rejecterId, String reason) {
+        JournalEntry journal = journalEntryRepository.findByEntityIdAndId(entityId, journalId)
+                .orElseThrow(() -> new IllegalArgumentException("Jurnal dengan ID " + journalId + " tidak ditemukan."));
+
+        if (journal.getStatus() != JournalStatus.SUBMITTED) {
+            throw new IllegalStateException("Hanya jurnal berstatus SUBMITTED yang dapat ditolak (status saat ini: "
+                    + journal.getStatus() + ").");
+        }
+
+        if (reason == null || reason.isBlank()) {
+            throw new IllegalArgumentException("Alasan penolakan wajib diisi.");
+        }
+
+        journal.setStatus(JournalStatus.DRAFT);
+        journal.setDescription(journal.getDescription() + " [Ditolak: " + reason.trim() + "]");
+        journal.setApprovedBy(null);
+        journal.setSubmittedBy(null);
+
+        JournalEntry saved = journalEntryRepository.save(journal);
+        return JournalResponse.fromEntity(saved);
+    }
+
+    /**
+     * Transisi: APPROVED -> POSTED
+     * Memposting jurnal yang sudah disetujui sebelumnya ke buku besar.
+     */
+    @Transactional
+    public JournalResponse postJournal(Long entityId, Long journalId, Long posterId) {
+        JournalEntry journal = journalEntryRepository.findByEntityIdAndId(entityId, journalId)
+                .orElseThrow(() -> new IllegalArgumentException("Jurnal dengan ID " + journalId + " tidak ditemukan."));
+
+        if (journal.getStatus() != JournalStatus.APPROVED) {
+            throw new IllegalStateException("Hanya jurnal berstatus APPROVED yang dapat diposting.");
+        }
+
+        AccountingPeriod period = accountingPeriodRepository.findByEntityIdAndId(entityId, journal.getPeriodId())
+                .orElseThrow(() -> new IllegalStateException("Periode akuntansi tidak ditemukan."));
+        if (!period.isOpen()) {
+            throw new IllegalStateException("Posting gagal: Periode akuntansi telah ditutup (INV-08).");
+        }
+
+        String journalNo = generateGaplessJournalNo(entityId, journal.getEntryDate().getYear());
+        journal.setJournalNo(journalNo);
+        journal.setStatus(JournalStatus.POSTED);
+        journal.setPostedBy(posterId);
+        journal.setPostedAt(OffsetDateTime.now());
+
+        JournalEntry saved = journalEntryRepository.save(journal);
+        accountBalanceService.updateBalancesForJournal(saved);
+
+        return JournalResponse.fromEntity(saved);
+    }
+
+    /**
+     * Transisi: DRAFT -> CANCELLED
+     * Membatalkan draf jurnal yang tidak jadi digunakan.
+     */
+    @Transactional
+    public JournalResponse cancelJournal(Long entityId, Long journalId, Long userId) {
+        JournalEntry journal = journalEntryRepository.findByEntityIdAndId(entityId, journalId)
+                .orElseThrow(() -> new IllegalArgumentException("Jurnal dengan ID " + journalId + " tidak ditemukan."));
+
+        if (journal.getStatus() != JournalStatus.DRAFT) {
+            throw new IllegalStateException("Hanya jurnal berstatus DRAFT yang dapat dibatalkan.");
+        }
+
+        journal.setStatus(JournalStatus.CANCELLED);
+        JournalEntry saved = journalEntryRepository.save(journal);
+        return JournalResponse.fromEntity(saved);
+    }
+
+    /**
      * Membalik jurnal berstatus POSTED (Reversal Entry).
      * Membalik posisi Debit dan Kredit untuk menetralkan saldo secara legal.
      */
