@@ -48,9 +48,11 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { MoneyText } from "@/components/shared/MoneyText"
 import { Check, X, ShieldAlert, FileText, Loader2, RefreshCw } from "lucide-react"
 import { apiFetch } from "@/lib/api"
+import { useAuth } from "@/features/auth/context/AuthContext"
 import type { JournalResponse } from "../../journals/types"
 
 export function ApprovalsPage() {
+  const { user } = useAuth()
   const [drafts, setDrafts] = React.useState<JournalResponse[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
 
@@ -84,11 +86,11 @@ export function ApprovalsPage() {
     fetchSubmittedJournals()
   }, [fetchSubmittedJournals])
 
-  // Handle Approve resmi oleh Checker sah (Raka, ID = 2)
+  // Handle Approve resmi oleh Checker sah (dari sesi token JWT pengguna yang login)
   const handleApproveValid = async (journal: JournalResponse) => {
     try {
       setApprovingId(journal.id)
-      const res = await apiFetch<JournalResponse>(`/journals/${journal.id}/approve?approverId=2&post=true`, {
+      const res = await apiFetch<JournalResponse>(`/journals/${journal.id}/approve?post=true`, {
         method: "POST",
       })
       toast.success(`Jurnal #${journal.id} disetujui & diposting ke Buku Besar sebagai ${res.journalNo}!`)
@@ -100,17 +102,17 @@ export function ApprovalsPage() {
     }
   }
 
-  // Handle Uji Fraud Maker-Checker: Mencoba approve dengan user pembuat (Dina, ID = 1)
+  // Handle Uji Fraud Maker-Checker: Mensimulasikan pembuat jurnal mencoba menyetujui jurnalnya sendiri
   const handleTestFraud = async (journal: JournalResponse) => {
     try {
       setApprovingId(journal.id)
-      await apiFetch<JournalResponse>(`/journals/${journal.id}/approve?approverId=1&post=true`, {
+      await apiFetch<JournalResponse>(`/journals/${journal.id}/approve?approverId=${journal.createdBy}&post=true`, {
         method: "POST",
       })
       toast.error("Peringatan: Sistem mengizinkan approval (harusnya ditolak)!")
     } catch (err: any) {
-      // Harusnya ditolak oleh backend
-      toast.error(`Sistem Menolak : ${err.message}`, {
+      // Harusnya ditolak oleh backend (Maker-Checker Invariant)
+      toast.error(`Sistem Menolak: ${err.message}`, {
         duration: 5000,
       })
     } finally {
@@ -248,7 +250,14 @@ export function ApprovalsPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground py-3">
-                      <span className="font-semibold text-foreground">User ID {draft.createdBy}</span> (Dina - Maker)
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-semibold text-foreground">User ID {draft.createdBy}</span>
+                        {user && user.id === draft.createdBy && (
+                          <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-400/30">
+                            Anda (Maker)
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right text-xs font-mono py-3 font-semibold">
                       <MoneyText amount={draft.totalAmount} />

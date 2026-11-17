@@ -1,4 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom"
+import { AuthProvider, useAuth } from "@/features/auth/context/AuthContext"
+import { LoginPage } from "@/features/auth/pages/LoginPage"
 import { AppShell } from "@/components/layout/AppShell"
 import { DashboardPage } from "@/features/dashboard/pages/DashboardPage"
 import { CoaPage } from "@/features/coa/pages/CoaPage"
@@ -14,30 +16,66 @@ import { AuditPage } from "@/features/audit/pages/AuditPage"
 import { DesignSystemPage } from "@/features/design-system/pages/DesignSystemPage"
 import { Toaster } from "sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { Scale } from "lucide-react"
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading } = useAuth()
+  const location = useLocation()
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="flex flex-col items-center gap-3">
+          <div className="size-10 rounded-xl bg-[#0D6276] flex items-center justify-center text-white shadow-md animate-pulse">
+            <Scale className="size-5" />
+          </div>
+          <p className="text-xs font-medium text-slate-500">Memuat sesi Kredo...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
+
+  return <>{children}</>
+}
 
 export function App() {
   return (
     <TooltipProvider>
-      <BrowserRouter>
-        <Toaster position="top-right" richColors />
-        <Routes>
-          <Route path="/" element={<AppShell />}>
-            <Route index element={<DashboardPage />} />
-            <Route path="accounts" element={<CoaPage />} />
-            <Route path="journals" element={<JournalsPage />} />
-            <Route path="journals/new" element={<JournalEditorPage />} />
-            <Route path="journals/:id" element={<JournalDetailPage />} />
-            <Route path="approvals" element={<ApprovalsPage />} />
-            <Route path="periods" element={<PeriodsPage />} />
-            <Route path="reports" element={<ReportsPage />} />
-            <Route path="reports/general-ledger" element={<GeneralLedgerPage />} />
-            <Route path="imports" element={<ImportsPage />} />
-            <Route path="audit" element={<AuditPage />} />
-            <Route path="design-system" element={<DesignSystemPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <Toaster position="top-right" richColors />
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <AppShell />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<DashboardPage />} />
+              <Route path="accounts" element={<CoaPage />} />
+              <Route path="journals" element={<JournalsPage />} />
+              <Route path="journals/new" element={<JournalEditorPage />} />
+              <Route path="journals/:id" element={<JournalDetailPage />} />
+              <Route path="approvals" element={<ApprovalsPage />} />
+              <Route path="periods" element={<PeriodsPage />} />
+              <Route path="reports" element={<ReportsPage />} />
+              <Route path="reports/general-ledger" element={<GeneralLedgerPage />} />
+              <Route path="imports" element={<ImportsPage />} />
+              <Route path="audit" element={<AuditPage />} />
+              <Route path="design-system" element={<DesignSystemPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </TooltipProvider>
   )
 }

@@ -305,7 +305,7 @@ export function JournalEditorPage() {
       })
 
       // 2. Submit ke Persetujuan
-      await apiFetch<JournalResponse>(`/journals/${draft.id}/submit?userId=1`, {
+      await apiFetch<JournalResponse>(`/journals/${draft.id}/submit`, {
         method: "POST",
       })
 

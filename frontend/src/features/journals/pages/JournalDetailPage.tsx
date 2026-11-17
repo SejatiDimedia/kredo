@@ -130,7 +130,7 @@ export function JournalDetailPage() {
     if (!journal) return
     try {
       setIsSubmitting(true)
-      await apiFetch<JournalResponse>(`/journals/${journal.id}/submit?userId=1`, {
+      await apiFetch<JournalResponse>(`/journals/${journal.id}/submit`, {
         method: "POST",
       })
       toast.success("Jurnal berhasil diajukan ke antrean persetujuan (SUBMITTED).")

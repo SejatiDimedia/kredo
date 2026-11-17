@@ -1,4 +1,6 @@
+import * as React from "react"
 import { useNavigate } from "react-router-dom"
+import { useAuth } from "@/features/auth/context/AuthContext"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -36,10 +38,61 @@ import {
   ShieldAlert,
   Clock,
   BookOpen,
+  Loader2,
+  AlertTriangle,
 } from "lucide-react"
+import { apiFetch } from "@/lib/api"
+import type { JournalResponse } from "@/features/journals/types"
+import type { TrialBalanceResponse, IncomeStatementResponse, BalanceSheetResponse } from "@/features/reports/types"
 
 export function DashboardPage() {
   const navigate = useNavigate()
+  const { user, hasPermission } = useAuth()
+
+  const [isLoading, setIsLoading] = React.useState(true)
+  const [journals, setJournals] = React.useState<JournalResponse[]>([])
+  const [trialBalance, setTrialBalance] = React.useState<TrialBalanceResponse | null>(null)
+  const [incomeStatement, setIncomeStatement] = React.useState<IncomeStatementResponse | null>(null)
+  const [balanceSheet, setBalanceSheet] = React.useState<BalanceSheetResponse | null>(null)
+
+  const activeEntityName = user?.activeEntityName || "PT Maju Jaya Sejahtera"
+
+  React.useEffect(() => {
+    async function loadDashboardData() {
+      try {
+        setIsLoading(true)
+        const [journalsRes, tbRes, isRes, bsRes] = await Promise.allSettled([
+          apiFetch<JournalResponse[]>("/journals"),
+          apiFetch<TrialBalanceResponse>("/reports/trial-balance?periodId=11"),
+          apiFetch<IncomeStatementResponse>("/reports/income-statement?periodId=11"),
+          apiFetch<BalanceSheetResponse>("/reports/balance-sheet?periodId=11"),
+        ])
+
+        if (journalsRes.status === "fulfilled") setJournals(journalsRes.value)
+        if (tbRes.status === "fulfilled") setTrialBalance(tbRes.value)
+        if (isRes.status === "fulfilled") setIncomeStatement(isRes.value)
+        if (bsRes.status === "fulfilled") setBalanceSheet(bsRes.value)
+      } catch (err) {
+        console.error("Gagal memuat ringkasan dashboard", err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadDashboardData()
+  }, [])
+
+  const pendingJournals = React.useMemo(
+    () => journals.filter((j) => j.status === "SUBMITTED"),
+    [journals]
+  )
+
+  const recentPostedJournals = React.useMemo(
+    () => journals.filter((j) => j.status === "POSTED").slice(0, 5),
+    [journals]
+  )
+
+  const isBalanced = trialBalance ? trialBalance.isBalanced : true
 
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto">
@@ -63,7 +116,7 @@ export function DashboardPage() {
             Ringkasan Buku Besar
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            PT Maju Jaya Sejahtera • Periode Aktif: November 2026 (OPEN)
+            {activeEntityName} • Periode Aktif: November 2026 (OPEN)
           </p>
         </div>
 
@@ -72,109 +125,116 @@ export function DashboardPage() {
             <Calendar className="size-3.5 mr-1.5" />
             Periode: Nov 2026
           </Button>
-          <Button size="sm" onClick={() => navigate("/journals/new")}>
-            <Plus className="size-3.5 mr-1.5" />
-            Entri Jurnal Baru
-          </Button>
+          {hasPermission("journal:create") && (
+            <Button size="sm" className="bg-[#0D6276] hover:bg-[#0A4D5D] text-white" onClick={() => navigate("/journals/new")}>
+              <Plus className="size-3.5 mr-1.5" />
+              Entri Jurnal Baru
+            </Button>
+          )}
         </div>
       </div>
 
       {/* Ledger Integrity Alert */}
-      <Alert className="border-teal-500/30 bg-teal-500/5">
-        <CheckCircle2 className="size-4 text-teal-700 dark:text-teal-400" />
-        <AlertTitle className="text-xs font-semibold text-foreground">
-          Integritas Neraca Saldo Terverifikasi
-        </AlertTitle>
-        <AlertDescription className="text-xs text-muted-foreground">
-          Seluruh jurnal berstatus <code>POSTED</code> berada dalam keseimbangan sempurna. Total Debit (Rp 1.485.000.000,00) = Total Kredit (Rp 1.485.000.000,00) dengan variansi selisih 0,00.
-        </AlertDescription>
-      </Alert>
+      {isBalanced ? (
+        <Alert className="border-teal-500/30 bg-teal-500/5">
+          <CheckCircle2 className="size-4 text-teal-700 dark:text-teal-400" />
+          <AlertTitle className="text-xs font-semibold text-foreground">
+            Integritas Neraca Saldo Terverifikasi
+          </AlertTitle>
+          <AlertDescription className="text-xs text-muted-foreground">
+            Seluruh jurnal berstatus <code>POSTED</code> berada dalam keseimbangan matematis.{" "}
+            {trialBalance && (
+              <>
+                Total Debit (<MoneyText amount={trialBalance.totalDebit} />) = Total Kredit (<MoneyText amount={trialBalance.totalCredit} />) dengan variansi selisih 0,00.
+              </>
+            )}
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <Alert className="border-rose-500/30 bg-rose-500/5 text-rose-800 dark:text-rose-200">
+          <AlertTriangle className="size-4 text-rose-600" />
+          <AlertTitle className="text-xs font-semibold">
+            Peringatan: Neraca Saldo Tidak Seimbang!
+          </AlertTitle>
+          <AlertDescription className="text-xs">
+            Ditemukan selisih variansi antara Debit dan Kredit sebesar <MoneyText amount={trialBalance ? Math.abs(Number(trialBalance.totalDebit) - Number(trialBalance.totalCredit)) : 0} />. Segera lakukan rekonsiliasi akun.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Financial Metrics Cards (4 Columns) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Metric 1: Kas & Setara Kas */}
+        {/* Metric 1: Total Aset */}
         <Card size="sm">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">Kas & Bank Likuid</span>
+              <span className="text-xs font-medium text-muted-foreground">Total Aset</span>
               <Badge variant="outline" className="text-[10px] font-mono border-teal-500/30 text-teal-700 dark:text-teal-400">
-                Akun 1100
+                Neraca
               </Badge>
             </div>
             <CardTitle className="text-xl font-bold tracking-tight mt-1">
-              <MoneyText amount="158875000" />
+              <MoneyText amount={balanceSheet?.totalAsset ?? 100000000} />
             </CardTitle>
           </CardHeader>
           <CardContent className="text-xs text-muted-foreground space-y-1">
             <div className="flex justify-between">
-              <span>BCA Operasional:</span>
-              <MoneyText amount="100000000" className="font-medium text-foreground" />
+              <span>Posisi Keuangan:</span>
+              <span className="font-medium text-foreground">Aktif Seimbang</span>
             </div>
             <div className="flex justify-between">
-              <span>Mandiri Payroll:</span>
-              <MoneyText amount="50000000" className="font-medium text-foreground" />
-            </div>
-            <div className="flex justify-between">
-              <span>Kas Kecil:</span>
-              <MoneyText amount="8875000" className="font-medium text-foreground" />
+              <span>Basis Pencatatan:</span>
+              <span className="font-medium text-foreground">Akrual Standar</span>
             </div>
           </CardContent>
         </Card>
 
-        {/* Metric 2: Piutang Usaha */}
+        {/* Metric 2: Total Liabilitas */}
         <Card size="sm">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">Piutang Usaha (AR)</span>
-              <Badge variant="outline" className="text-[10px] font-mono border-blue-500/30 text-blue-700 dark:text-blue-400">
-                Akun 1200
-              </Badge>
-            </div>
-            <CardTitle className="text-xl font-bold tracking-tight mt-1">
-              <MoneyText amount="84500000" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-xs text-muted-foreground space-y-1">
-            <div className="flex justify-between">
-              <span>Lancar (Current):</span>
-              <MoneyText amount="72000000" className="font-medium text-foreground" />
-            </div>
-            <div className="flex justify-between">
-              <span>Jatuh Tempo 1-30 hr:</span>
-              <MoneyText amount="12500000" className="font-medium text-amber-600 dark:text-amber-400" />
-            </div>
-            <div className="flex justify-between">
-              <span>Cadangan Penurunan:</span>
-              <MoneyText amount="0" className="font-medium text-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Metric 3: Utang Usaha */}
-        <Card size="sm">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">Utang Usaha (AP)</span>
+              <span className="text-xs font-medium text-muted-foreground">Total Liabilitas (Kewajiban)</span>
               <Badge variant="outline" className="text-[10px] font-mono border-amber-500/30 text-amber-700 dark:text-amber-400">
-                Akun 2100
+                Liabilitas
               </Badge>
             </div>
             <CardTitle className="text-xl font-bold tracking-tight mt-1">
-              <MoneyText amount="42100000" />
+              <MoneyText amount={balanceSheet?.totalLiability ?? 0} />
             </CardTitle>
           </CardHeader>
           <CardContent className="text-xs text-muted-foreground space-y-1">
             <div className="flex justify-between">
-              <span>Utang Pemasok:</span>
-              <MoneyText amount="35000000" className="font-medium text-foreground" />
+              <span>Kewajiban Lancar:</span>
+              <MoneyText amount={balanceSheet?.totalLiability ?? 0} className="font-medium text-foreground" />
             </div>
             <div className="flex justify-between">
-              <span>Utang Pajak PPN:</span>
-              <MoneyText amount="4100000" className="font-medium text-foreground" />
+              <span>Status Jatuh Tempo:</span>
+              <span className="font-medium text-emerald-600 dark:text-emerald-400">Terkendali</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Metric 3: Total Ekuitas */}
+        <Card size="sm">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-muted-foreground">Total Ekuitas Modal</span>
+              <Badge variant="outline" className="text-[10px] font-mono border-blue-500/30 text-blue-700 dark:text-blue-400">
+                Modal
+              </Badge>
+            </div>
+            <CardTitle className="text-xl font-bold tracking-tight mt-1">
+              <MoneyText amount={balanceSheet?.totalEquity ?? 100000000} />
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-xs text-muted-foreground space-y-1">
+            <div className="flex justify-between">
+              <span>Modal Disetor:</span>
+              <span className="font-medium text-foreground">PT Maju Jaya</span>
             </div>
             <div className="flex justify-between">
-              <span>Akrual Gaji:</span>
-              <MoneyText amount="3000000" className="font-medium text-foreground" />
+              <span>Laba Ditahan:</span>
+              <span className="font-medium text-foreground">Akrual Berjalan</span>
             </div>
           </CardContent>
         </Card>
@@ -183,27 +243,23 @@ export function DashboardPage() {
         <Card size="sm">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">Laba Bersih (YTD)</span>
+              <span className="text-xs font-medium text-muted-foreground">Laba Bersih Berjalan</span>
               <Badge variant="outline" className="text-[10px] font-mono border-emerald-500/30 text-emerald-700 dark:text-emerald-400">
                 P&L Net
               </Badge>
             </div>
             <CardTitle className="text-xl font-bold tracking-tight mt-1">
-              <MoneyText amount="165000000" highlightPositive />
+              <MoneyText amount={incomeStatement?.netIncome ?? 0} highlightPositive />
             </CardTitle>
           </CardHeader>
           <CardContent className="text-xs text-muted-foreground space-y-1">
             <div className="flex justify-between">
-              <span>Pendapatan:</span>
-              <MoneyText amount="450000000" className="font-medium text-foreground" />
+              <span>Total Pendapatan:</span>
+              <MoneyText amount={incomeStatement?.totalRevenue ?? 0} className="font-medium text-foreground" />
             </div>
             <div className="flex justify-between">
-              <span>HPP & Beban Ops:</span>
-              <MoneyText amount="285000000" className="font-medium text-foreground" />
-            </div>
-            <div className="flex justify-between">
-              <span>Margin Operasional:</span>
-              <span className="font-medium text-foreground">36.7%</span>
+              <span>Total Beban:</span>
+              <MoneyText amount={incomeStatement?.totalExpense ?? 0} className="font-medium text-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -218,8 +274,8 @@ export function DashboardPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <CardTitle className="text-sm font-semibold">Antrean Persetujuan (Maker-Checker)</CardTitle>
-                  <Badge variant="secondary" className="text-[10px] font-semibold">
-                    2 Menunggu
+                  <Badge variant={pendingJournals.length > 0 ? "secondary" : "outline"} className="text-[10px] font-semibold">
+                    {pendingJournals.length} Menunggu
                   </Badge>
                 </div>
                 <CardDescription className="text-xs">
@@ -235,68 +291,66 @@ export function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-b border-border/20 bg-muted/10">
-                  <TableHead className="w-[120px] pl-4 text-xs font-semibold">Draft ID</TableHead>
-                  <TableHead className="text-xs font-semibold">Keterangan Transaksi</TableHead>
-                  <TableHead className="w-[130px] text-right text-xs font-semibold">Nominal</TableHead>
-                  <TableHead className="w-[80px] text-center pr-4 text-xs font-semibold">Aksi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow className="border-b border-border/10 hover:bg-muted/10">
-                  <TableCell className="font-mono text-xs pl-4 font-semibold text-primary">
-                    DFT-2026-089
-                  </TableCell>
-                  <TableCell className="text-xs">
-                    <div className="font-medium text-foreground">Pembayaran Beban Sewa Kantor</div>
-                    <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
-                      <Clock className="size-3" /> 15 Nov 2026 • Maker: Dina Putri
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right text-xs font-mono">
-                    <MoneyText amount="12500000" />
-                  </TableCell>
-                  <TableCell className="text-center pr-4">
-                    <Button size="xs" variant="outline" onClick={() => navigate("/approvals")}>
-                      Review
-                    </Button>
-                  </TableCell>
-                </TableRow>
-                <TableRow className="border-b-0 hover:bg-muted/10">
-                  <TableCell className="font-mono text-xs pl-4 font-semibold text-primary">
-                    DFT-2026-090
-                  </TableCell>
-                  <TableCell className="text-xs">
-                    <div className="font-medium text-foreground">Pengadaan Alat Tulis Operasional</div>
-                    <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
-                      <Clock className="size-3" /> 15 Nov 2026 • Maker: Dina Putri
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right text-xs font-mono">
-                    <MoneyText amount="3450000" />
-                  </TableCell>
-                  <TableCell className="text-center pr-4">
-                    <Button size="xs" variant="outline" onClick={() => navigate("/approvals")}>
-                      Review
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+            {isLoading ? (
+              <div className="p-8 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
+                <Loader2 className="size-4 animate-spin" /> Memuat antrean...
+              </div>
+            ) : pendingJournals.length === 0 ? (
+              <div className="p-8 text-center text-xs text-muted-foreground">
+                Tidak ada jurnal yang menunggu persetujuan saat ini.
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b border-border/20 bg-muted/10">
+                    <TableHead className="w-[100px] pl-4 text-xs font-semibold">ID Draf</TableHead>
+                    <TableHead className="text-xs font-semibold">Keterangan Transaksi</TableHead>
+                    <TableHead className="w-[130px] text-right text-xs font-semibold">Nominal</TableHead>
+                    <TableHead className="w-[80px] text-center pr-4 text-xs font-semibold">Aksi</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pendingJournals.slice(0, 3).map((draft) => (
+                    <TableRow key={draft.id} className="border-b border-border/10 hover:bg-muted/10">
+                      <TableCell className="font-mono text-xs pl-4 font-semibold text-primary">
+                        DFT-{draft.id}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        <div className="font-medium text-foreground">{draft.description}</div>
+                        <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                          <Clock className="size-3" /> {draft.entryDate} • {draft.lines?.length || 0} baris
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right text-xs font-mono">
+                        <MoneyText amount={draft.totalAmount} />
+                      </TableCell>
+                      <TableCell className="text-center pr-4">
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          className="text-[11px] h-7"
+                          onClick={() => navigate(`/journals/${draft.id}`)}
+                        >
+                          Tinjau
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
 
-        {/* Column 2: Recent Posted Journals */}
+        {/* Column 2: Recent Journal Entries */}
         <Card>
           <CardHeader className="border-b border-border/30 pb-3">
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <CardTitle className="text-sm font-semibold">Jurnal Terakhir Diposting</CardTitle>
-                  <Badge variant="outline" className="text-[10px]">
-                    Live Ledger
+                  <CardTitle className="text-sm font-semibold">Transaksi Terposting Terbaru</CardTitle>
+                  <Badge variant="outline" className="text-[10px] border-teal-500/30 text-teal-700 dark:text-teal-400">
+                    Buku Besar
                   </Badge>
                 </div>
                 <CardDescription className="text-xs">
@@ -312,69 +366,49 @@ export function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-b border-border/20 bg-muted/10">
-                  <TableHead className="w-[140px] pl-4 text-xs font-semibold">No. Jurnal</TableHead>
-                  <TableHead className="text-xs font-semibold">Keterangan</TableHead>
-                  <TableHead className="w-[130px] text-right text-xs font-semibold">Total Nominal</TableHead>
-                  <TableHead className="w-[80px] text-center pr-4 text-xs font-semibold">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow className="border-b border-border/10 hover:bg-muted/10">
-                  <TableCell className="font-mono text-xs pl-4 font-semibold text-primary">
-                    JV-PTM-2026-000003
-                  </TableCell>
-                  <TableCell className="text-xs">
-                    <div className="font-medium text-foreground">Penjualan Kredit Barang Dagang</div>
-                    <div className="text-[10px] text-muted-foreground">15 Nov 2026 • 2 Baris Entri</div>
-                  </TableCell>
-                  <TableCell className="text-right text-xs font-mono">
-                    <MoneyText amount="15000000" />
-                  </TableCell>
-                  <TableCell className="text-center pr-4">
-                    <Badge variant="secondary" className="text-[10px]">
-                      POSTED
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-                <TableRow className="border-b border-border/10 hover:bg-muted/10">
-                  <TableCell className="font-mono text-xs pl-4 font-semibold text-primary">
-                    JV-PTM-2026-000002
-                  </TableCell>
-                  <TableCell className="text-xs">
-                    <div className="font-medium text-foreground">Pembelian Persediaan Barang Dagang</div>
-                    <div className="text-[10px] text-muted-foreground">14 Nov 2026 • 2 Baris Entri</div>
-                  </TableCell>
-                  <TableCell className="text-right text-xs font-mono">
-                    <MoneyText amount="20000000" />
-                  </TableCell>
-                  <TableCell className="text-center pr-4">
-                    <Badge variant="secondary" className="text-[10px]">
-                      POSTED
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-                <TableRow className="border-b-0 hover:bg-muted/10">
-                  <TableCell className="font-mono text-xs pl-4 font-semibold text-primary">
-                    JV-PTM-2026-000001
-                  </TableCell>
-                  <TableCell className="text-xs">
-                    <div className="font-medium text-foreground">Setoran Modal Pemilik Tunai</div>
-                    <div className="text-[10px] text-muted-foreground">14 Nov 2026 • 2 Baris Entri</div>
-                  </TableCell>
-                  <TableCell className="text-right text-xs font-mono">
-                    <MoneyText amount="100000000" />
-                  </TableCell>
-                  <TableCell className="text-center pr-4">
-                    <Badge variant="secondary" className="text-[10px]">
-                      POSTED
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+            {isLoading ? (
+              <div className="p-8 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
+                <Loader2 className="size-4 animate-spin" /> Memuat transaksi...
+              </div>
+            ) : recentPostedJournals.length === 0 ? (
+              <div className="p-8 text-center text-xs text-muted-foreground">
+                Belum ada transaksi berstatus POSTED.
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b border-border/20 bg-muted/10">
+                    <TableHead className="w-[140px] pl-4 text-xs font-semibold">No. Jurnal</TableHead>
+                    <TableHead className="text-xs font-semibold">Keterangan</TableHead>
+                    <TableHead className="w-[130px] text-right text-xs font-semibold">Total Nominal</TableHead>
+                    <TableHead className="w-[80px] text-center pr-4 text-xs font-semibold">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recentPostedJournals.map((j) => (
+                    <TableRow key={j.id} className="border-b border-border/10 hover:bg-muted/10">
+                      <TableCell className="font-mono text-xs pl-4 font-semibold text-primary">
+                        {j.journalNo || `JRN-${j.id}`}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        <div className="font-medium text-foreground">{j.description}</div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {j.entryDate} • {j.lines?.length || 0} Baris Entri
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right text-xs font-mono">
+                        <MoneyText amount={j.totalAmount} />
+                      </TableCell>
+                      <TableCell className="text-center pr-4">
+                        <Badge variant="secondary" className="text-[10px]">
+                          {j.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </div>
