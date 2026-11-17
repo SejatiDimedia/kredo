@@ -27,7 +27,7 @@ const PERSONA_PROFILES: PersonaProfile[] = [
     email: "accountant@kredo.com",
     roleBadge: "ACCOUNTANT",
     badgeVariant: "default",
-    badgeClass: "bg-teal-600/15 text-teal-800 dark:bg-teal-400/20 dark:text-teal-200 border-teal-500/30",
+    badgeClass: "bg-teal-50 text-[#0D6276] dark:bg-teal-950/80 dark:text-teal-200 border-teal-200 dark:border-teal-800",
     icon: UserCheck,
     responsibility: "Input draf jurnal baru, impor massal CSV transaksi, dan pantau status pengajuan.",
   },
@@ -37,7 +37,7 @@ const PERSONA_PROFILES: PersonaProfile[] = [
     email: "approver@kredo.com",
     roleBadge: "APPROVER",
     badgeVariant: "secondary",
-    badgeClass: "bg-amber-500/15 text-amber-800 dark:bg-amber-400/20 dark:text-amber-200 border-amber-500/30",
+    badgeClass: "bg-blue-50 text-blue-900 dark:bg-blue-950/80 dark:text-blue-200 border-blue-200 dark:border-blue-800",
     icon: FileCheck,
     responsibility: "Tinjau antrean persetujuan, validasi kepatuhan, setujui/tolak jurnal, dan posting ke buku besar.",
   },
@@ -47,7 +47,7 @@ const PERSONA_PROFILES: PersonaProfile[] = [
     email: "controller@kredo.com",
     roleBadge: "CONTROLLER",
     badgeVariant: "default",
-    badgeClass: "bg-indigo-500/15 text-indigo-800 dark:bg-indigo-400/20 dark:text-indigo-200 border-indigo-500/30",
+    badgeClass: "bg-purple-50 text-purple-900 dark:bg-purple-950/80 dark:text-purple-200 border-purple-200 dark:border-purple-800",
     icon: Landmark,
     responsibility: "Kelola bagan akun (COA), eksekusi tutup periode bulanan, dan verifikasi rekonsiliasi buku besar.",
   },
@@ -57,7 +57,7 @@ const PERSONA_PROFILES: PersonaProfile[] = [
     email: "auditor@kredo.com",
     roleBadge: "AUDITOR",
     badgeVariant: "outline",
-    badgeClass: "bg-emerald-500/15 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-200 border-emerald-500/30",
+    badgeClass: "bg-emerald-50 text-emerald-900 dark:bg-emerald-950/80 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800",
     icon: Search,
     responsibility: "Akses read-only seluruh laporan keuangan dan verifikasi integritas hash chaining audit trail.",
   },
@@ -67,7 +67,7 @@ const PERSONA_PROFILES: PersonaProfile[] = [
     email: "admin@kredo.com",
     roleBadge: "ADMIN",
     badgeVariant: "outline",
-    badgeClass: "bg-slate-500/15 text-slate-800 dark:bg-slate-400/20 dark:text-slate-200 border-slate-500/30",
+    badgeClass: "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700",
     icon: ShieldCheck,
     responsibility: "Kelola akun pengguna, penugasan hak akses per entitas, dan konfigurasi master sistem.",
   },
@@ -283,7 +283,7 @@ export function LoginPage() {
                         </span>
                         <Badge
                           variant="outline"
-                          className={`text-[9px] font-mono px-1.5 py-0 h-4 uppercase ${persona.badgeClass}`}
+                          className={`text-[9px] font-mono px-1.5 py-0 h-4 uppercase rounded-md ${persona.badgeClass}`}
                         >
                           {persona.roleBadge}
                         </Badge>

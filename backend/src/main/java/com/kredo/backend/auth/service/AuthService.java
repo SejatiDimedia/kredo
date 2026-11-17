@@ -77,7 +77,7 @@ public class AuthService {
         UserDto userDto = buildUserDto(user, activeEntityId, activeRole, roles);
 
         auditLogService.log(activeEntityId, user.getId(), "LOGIN", "USER", user.getId(),
-                "Pengguna login berhasil sebagai " + activeRole.name());
+                "{\"role\":\"" + activeRole.name() + "\",\"email\":\"" + user.getEmail() + "\"}");
 
         return new LoginResult(new AuthResponse(accessToken, userDto), rawRefreshToken);
     }
@@ -99,7 +99,7 @@ public class AuthService {
             refreshTokenRepository.revokeAllForUser(storedToken.getUserId(), Instant.now());
 
             auditLogService.log(1L, storedToken.getUserId(), "SECURITY_ALERT", "TOKEN", storedToken.getId(),
-                    "DETEKSI PENCURIAN TOKEN: Percobaan penggunaan ulang refresh token yang telah dicabut. Seluruh sesi pengguna dicabut demi keamanan.");
+                    "{\"alert\":\"TOKEN_THEFT_DETECTED\",\"userId\":" + storedToken.getUserId() + "}");
 
             log.warn("SECURITY ALERT: Token reuse detected for userId {}. All sessions revoked.", storedToken.getUserId());
             throw new IllegalStateException("Peringatan Keamanan: Terdeteksi penggunaan ulang token kedaluwarsa. Seluruh sesi dicabut demi keamanan.");
@@ -155,7 +155,7 @@ public class AuthService {
             });
         }
         if (userId != null) {
-            auditLogService.log(1L, userId, "LOGOUT", "USER", userId, "Pengguna logout dan mencabut sesi.");
+            auditLogService.log(1L, userId, "LOGOUT", "USER", userId, "{\"status\":\"REVOKED\"}");
         }
     }
 

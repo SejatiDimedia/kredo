@@ -35,7 +35,15 @@ public class AuditLogService {
 
         String cleanIp = (ipAddress != null && !ipAddress.isBlank()) ? ipAddress : "127.0.0.1";
         UUID cleanCorrId = (correlationId != null) ? correlationId : UUID.randomUUID();
-        String cleanJson = (detailJson != null && !detailJson.isBlank()) ? detailJson : "{}";
+        
+        String cleanJson;
+        if (detailJson == null || detailJson.isBlank()) {
+            cleanJson = "{}";
+        } else if (detailJson.trim().startsWith("{") || detailJson.trim().startsWith("[")) {
+            cleanJson = detailJson.trim();
+        } else {
+            cleanJson = "{\"message\":\"" + detailJson.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", " ") + "\"}";
+        }
 
         jdbcTemplate.update(sql, entityId, actorId, action, targetType, targetId, cleanJson, cleanIp, cleanCorrId);
     }

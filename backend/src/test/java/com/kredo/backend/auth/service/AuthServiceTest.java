@@ -145,7 +145,7 @@ class AuthServiceTest {
         // Memastikan seluruh token user ini dicabut darurat
         verify(refreshTokenRepository, times(1)).revokeAllForUser(eq(2L), any(Instant.class));
         // Memastikan tercatat di audit log
-        verify(auditLogService, times(1)).log(eq(1L), eq(2L), eq("SECURITY_ALERT"), eq("TOKEN"), eq(50L), contains("DETEKSI PENCURIAN TOKEN"));
+        verify(auditLogService, times(1)).log(eq(1L), eq(2L), eq("SECURITY_ALERT"), eq("TOKEN"), eq(50L), contains("TOKEN_THEFT_DETECTED"));
     }
 
     @Test

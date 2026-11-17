@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1"
+// Default ke proxy Vite "/api/v1" untuk menghindari isu CORS & Cookie lintas-port
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api/v1"
 
 // Access token disimpan murni di memori RAM runtime browser (FR-AUTH-01: bukan di localStorage / sessionStorage)
 let inMemoryAccessToken: string | null = null
@@ -47,7 +48,14 @@ export async function apiFetch<T>(endpoint: string, options?: RequestInit): Prom
     headers,
   }
 
-  let res = await fetch(`${API_BASE_URL}${cleanEndpoint}`, fetchOptions)
+  let res: Response
+  try {
+    res = await fetch(`${API_BASE_URL}${cleanEndpoint}`, fetchOptions)
+  } catch {
+    throw new Error(
+      "Tidak dapat terhubung ke Backend Kredo (port 8080). Pastikan Spring Boot dan Docker PostgreSQL sedang berjalan."
+    )
+  }
 
   // Jika token JWT habis (401) dan request bukan menuju endpoint auth login/refresh/logout
   const isAuthEndpoint = cleanEndpoint.startsWith("/auth/")
@@ -59,10 +67,14 @@ export async function apiFetch<T>(endpoint: string, options?: RequestInit): Prom
       if (inMemoryAccessToken) {
         headers.set("Authorization", `Bearer ${inMemoryAccessToken}`)
       }
-      res = await fetch(`${API_BASE_URL}${cleanEndpoint}`, {
-        ...fetchOptions,
-        headers,
-      })
+      try {
+        res = await fetch(`${API_BASE_URL}${cleanEndpoint}`, {
+          ...fetchOptions,
+          headers,
+        })
+      } catch {
+        throw new Error("Gagal mengulang request setelah refresh token.")
+      }
     } else {
       // Jika refresh gagal, cabut token dan picu redirect login
       inMemoryAccessToken = null

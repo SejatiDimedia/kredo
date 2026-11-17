@@ -89,21 +89,21 @@ export function AppShell() {
     }
   }
 
-  // Helper untuk warna badge role RBAC
+  // Helper untuk warna badge role RBAC sesuai DESIGN.md (High Contrast, Calm Fintech Tones)
   const getRoleBadgeClass = (role?: string) => {
     switch (role) {
       case "CONTROLLER":
-        return "bg-indigo-500/20 text-indigo-300 border-indigo-400/30"
+        return "bg-purple-50 text-purple-900 dark:bg-purple-950/80 dark:text-purple-200 border-purple-200 dark:border-purple-800"
       case "APPROVER":
-        return "bg-amber-500/20 text-amber-300 border-amber-400/30"
+        return "bg-blue-50 text-blue-900 dark:bg-blue-950/80 dark:text-blue-200 border-blue-200 dark:border-blue-800"
       case "ACCOUNTANT":
-        return "bg-teal-500/20 text-teal-300 border-teal-400/30"
+        return "bg-teal-50 text-[#0D6276] dark:bg-teal-950/80 dark:text-teal-200 border-teal-200 dark:border-teal-800"
       case "ADMIN":
-        return "bg-slate-500/20 text-slate-300 border-slate-400/30"
+        return "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700"
       case "AUDITOR":
-        return "bg-emerald-500/20 text-emerald-300 border-emerald-400/30"
+        return "bg-emerald-50 text-emerald-900 dark:bg-emerald-950/80 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800"
       default:
-        return "bg-slate-500/20 text-slate-300 border-slate-400/30"
+        return "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700"
     }
   }
 
@@ -340,59 +340,55 @@ export function AppShell() {
           </SidebarContent>
 
           {/* Sidebar Footer: Pengguna Aktif & Menu Logout */}
-          <SidebarFooter className="border-t border-sidebar-border h-14 p-0 flex items-center justify-center">
+          <SidebarFooter className="border-t border-sidebar-border h-16 p-2 flex items-center justify-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start gap-2.5 px-3 h-10 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-lg"
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-start gap-2.5 px-2.5 h-11 rounded-lg text-sidebar-foreground hover:bg-white/10 active:bg-white/15 aria-expanded:bg-white/15 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
                 >
                   <Avatar size="sm" className="size-8 shrink-0">
                     <AvatarFallback className="bg-white/20 text-white font-bold text-xs border border-white/20">
                       {initials}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col items-start text-left overflow-hidden group-data-[collapsible=icon]:hidden">
-                    <span className="text-xs font-semibold text-sidebar-foreground truncate">
+                  <div className="flex flex-col items-start text-left overflow-hidden group-data-[collapsible=icon]:hidden min-w-0">
+                    <span className="text-xs font-medium text-white truncate leading-tight">
                       {user?.fullName || "Pengguna"}
                     </span>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-[10px] text-sidebar-foreground/75 truncate">
-                        {user?.email}
-                      </span>
-                    </div>
+                    <span className="text-[10px] text-white/70 truncate leading-tight mt-0.5">
+                      {user?.email}
+                    </span>
                   </div>
-                  <ChevronDown className="size-3.5 text-sidebar-foreground/70 ml-auto group-data-[collapsible=icon]:hidden" />
-                </Button>
+                  <ChevronDown className="size-3.5 text-white/70 ml-auto shrink-0 group-data-[collapsible=icon]:hidden" />
+                </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-60 text-xs">
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-xs font-semibold text-foreground leading-none">{user?.fullName}</p>
-                    <p className="text-[11px] text-muted-foreground leading-none">{user?.email}</p>
-                    <div className="pt-1">
-                      <Badge variant="outline" className={`text-[9px] font-mono uppercase h-4 px-1.5 ${getRoleBadgeClass(user?.role)}`}>
-                        {user?.role}
-                      </Badge>
-                    </div>
+              <DropdownMenuContent align="end" side="top" sideOffset={8} className="w-64 text-xs p-1.5 shadow-lg border-border">
+                <div className="px-2.5 py-2">
+                  <p className="text-xs font-semibold text-foreground leading-none">{user?.fullName}</p>
+                  <p className="text-[11px] text-muted-foreground leading-none mt-1 truncate">{user?.email}</p>
+                  <div className="mt-2.5">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono font-medium tracking-wide border uppercase ${getRoleBadgeClass(user?.role)}`}>
+                      {user?.role}
+                    </span>
                   </div>
-                </DropdownMenuLabel>
+                </div>
 
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="my-1" />
 
                 <DropdownMenuItem
                   onClick={() => navigate("/login")}
-                  className="flex items-center gap-2 cursor-pointer"
+                  className="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer rounded-md text-xs"
                 >
                   <UserIcon className="size-3.5 text-muted-foreground" />
                   <span>Ganti Profil Persona (Login)</span>
                 </DropdownMenuItem>
 
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="my-1" />
 
                 <DropdownMenuItem
                   onClick={handleLogout}
-                  className="text-destructive flex items-center gap-2 cursor-pointer focus:bg-destructive/10"
+                  className="text-destructive flex items-center gap-2 px-2.5 py-1.5 cursor-pointer rounded-md text-xs focus:bg-destructive/10 focus:text-destructive"
                 >
                   <LogOut className="size-3.5" />
                   <span>Keluar dari Sesi</span>
@@ -457,21 +453,11 @@ export function AppShell() {
             </div>
 
             {/* Right Topbar Actions */}
-            <div className="flex items-center gap-3">
-              {/* Role badge di topbar untuk indikasi cepat */}
-              {user?.role && (
-                <Badge
-                  variant="outline"
-                  className={`hidden sm:inline-flex text-[10px] font-mono uppercase h-6 px-2 ${getRoleBadgeClass(user.role)}`}
-                >
-                  {user.role}
-                </Badge>
-              )}
-
+            <div className="flex items-center gap-2.5">
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 text-xs font-medium h-8"
+                className="gap-1.5 text-xs font-medium h-8 border-border/60"
                 onClick={() => setTheme(isDark ? "light" : "dark")}
               >
                 {isDark ? <Sun className="size-3.5 text-amber-500" /> : <Moon className="size-3.5 text-slate-700" />}
