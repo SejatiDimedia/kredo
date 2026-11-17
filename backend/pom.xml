@@ -72,7 +72,32 @@
             <artifactId>spring-modulith-starter-core</artifactId>
         </dependency>
 
-        <!-- 8. Test Starter: Framework pengujian unit test (JUnit 5 & AssertJ) -->
+        <!-- 8. Spring Security: Otentikasi & RBAC (Role-Based Access Control) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- 9. JJWT (Java JSON Web Token): Pembuatan dan Validasi Access Token JWT -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.12.6</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.12.6</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.12.6</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- 10. Test Starter: Framework pengujian unit test (JUnit 5 & AssertJ) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
