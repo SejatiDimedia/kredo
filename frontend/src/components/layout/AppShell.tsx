@@ -89,21 +89,40 @@ export function AppShell() {
     }
   }
 
+  // Breadcrumb mapping untuk orientasi hirarki modul akuntansi
+  const getBreadcrumb = (pathname: string): { group: string; page: string } => {
+    if (pathname === "/") return { group: "Ringkasan", page: "Dashboard" }
+    if (pathname === "/accounts") return { group: "Buku Besar", page: "Chart of Accounts" }
+    if (pathname === "/journals") return { group: "Buku Besar", page: "Jurnal Umum" }
+    if (pathname === "/journals/new") return { group: "Buku Besar", page: "Entri Jurnal Baru" }
+    if (pathname.startsWith("/journals/")) return { group: "Buku Besar", page: "Detail Jurnal" }
+    if (pathname === "/approvals") return { group: "Buku Besar", page: "Antrean Persetujuan" }
+    if (pathname === "/reports/general-ledger") return { group: "Buku Besar", page: "Buku Besar (Kartu Akun)" }
+    if (pathname.startsWith("/reports")) return { group: "Pelaporan", page: "Laporan Keuangan" }
+    if (pathname === "/periods") return { group: "Operasional", page: "Periode & Tutup Buku" }
+    if (pathname === "/imports") return { group: "Operasional", page: "Impor Massal Batch" }
+    if (pathname === "/audit") return { group: "Kepatuhan", page: "Jejak Audit" }
+    if (pathname === "/design-system") return { group: "Sistem", page: "Design System UI" }
+    return { group: "Akuntansi", page: "Kredo" }
+  }
+
+  const breadcrumb = getBreadcrumb(location.pathname)
+
   // Helper untuk warna badge role RBAC sesuai DESIGN.md (High Contrast, Calm Fintech Tones)
-  const getRoleBadgeClass = (role?: string) => {
+  const getRoleBadgeVariant = (role?: string): "purple" | "blue" | "info" | "secondary" | "success" => {
     switch (role) {
       case "CONTROLLER":
-        return "bg-purple-50 text-purple-900 dark:bg-purple-950/80 dark:text-purple-200 border-purple-200 dark:border-purple-800"
+        return "purple"
       case "APPROVER":
-        return "bg-blue-50 text-blue-900 dark:bg-blue-950/80 dark:text-blue-200 border-blue-200 dark:border-blue-800"
+        return "blue"
       case "ACCOUNTANT":
-        return "bg-teal-50 text-[#0D6276] dark:bg-teal-950/80 dark:text-teal-200 border-teal-200 dark:border-teal-800"
+        return "info"
       case "ADMIN":
-        return "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700"
+        return "secondary"
       case "AUDITOR":
-        return "bg-emerald-50 text-emerald-900 dark:bg-emerald-950/80 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800"
+        return "success"
       default:
-        return "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700"
+        return "secondary"
     }
   }
 
@@ -212,14 +231,9 @@ export function AppShell() {
                         tooltip="Antrean Persetujuan Jurnal (Checker)"
                         className="group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
                       >
-                        <NavLink to="/approvals" className="flex items-center justify-between w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:size-full">
-                          <div className="flex items-center gap-2.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0">
-                            <CheckSquare className="size-4 shrink-0" />
-                            <span className="group-data-[collapsible=icon]:hidden">Persetujuan</span>
-                          </div>
-                          <Badge variant="outline" className="ml-auto text-[10px] h-4 px-1.5 border-white/30 text-white bg-white/10 group-data-[collapsible=icon]:hidden">
-                            Checker
-                          </Badge>
+                        <NavLink to="/approvals" className="flex items-center gap-2.5 w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:size-full">
+                          <CheckSquare className="size-4 shrink-0" />
+                          <span className="group-data-[collapsible=icon]:hidden">Persetujuan</span>
                         </NavLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -227,10 +241,6 @@ export function AppShell() {
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
-
-            <div className="flex justify-center w-full px-2 py-0.5">
-              <Separator className="bg-sidebar-border/60 w-full group-data-[collapsible=icon]:w-5" />
-            </div>
 
             {/* Group 2: Periode, Pelaporan, & Impor */}
             <SidebarGroup className="p-0 group-data-[collapsible=icon]:p-0">
@@ -306,6 +316,21 @@ export function AppShell() {
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )}
+
+                  {/* Design System UI Specs */}
+                  <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === "/design-system"}
+                      tooltip="Design System & UI Specs"
+                      className="group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
+                    >
+                      <NavLink to="/design-system" className="flex items-center gap-2.5 w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:size-full">
+                        <Palette className="size-4 shrink-0" />
+                        <span className="group-data-[collapsible=icon]:hidden">Design System</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -317,10 +342,10 @@ export function AppShell() {
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="w-full flex items-center justify-start gap-2.5 px-2.5 h-11 rounded-lg text-sidebar-foreground hover:bg-white/10 active:bg-white/15 aria-expanded:bg-white/15 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
+                  className="w-full flex items-center justify-start gap-2.5 px-2.5 h-11 rounded-lg bg-transparent border-0 text-sidebar-foreground hover:bg-white/10 active:bg-white/15 data-[state=open]:bg-white/15 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center cursor-pointer"
                 >
-                  <Avatar size="sm" className="size-8 shrink-0">
-                    <AvatarFallback className="bg-white/20 text-white font-bold text-xs border border-white/20">
+                  <Avatar size="sm" className="size-8 shrink-0 ring-1 ring-white/20">
+                    <AvatarFallback className="bg-[#094754] text-white font-semibold text-xs border-0">
                       {initials}
                     </AvatarFallback>
                   </Avatar>
@@ -339,9 +364,12 @@ export function AppShell() {
                 <div className="px-2.5 py-2">
                   <p className="text-xs font-semibold text-foreground leading-none">{user?.fullName}</p>
                   <p className="text-[11px] text-muted-foreground leading-none mt-1 truncate">{user?.email}</p>
-                  <div className="mt-2.5">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono font-medium tracking-wide border uppercase ${getRoleBadgeClass(user?.role)}`}>
+                  <div className="mt-2.5 flex items-center justify-between">
+                    <Badge variant={getRoleBadgeVariant(user?.role)} size="sm">
                       {user?.role}
+                    </Badge>
+                    <span className="text-[10px] text-muted-foreground">
+                      {activeEntityName}
                     </span>
                   </div>
                 </div>
@@ -375,65 +403,95 @@ export function AppShell() {
 
         {/* Main Content Area */}
         <SidebarInset className="flex flex-col flex-1 overflow-x-hidden">
-          {/* Topbar */}
-          <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border/40 bg-background/90 px-6 backdrop-blur-md">
+          {/* Topbar / Application Header */}
+          <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-border bg-card px-4 md:px-6">
+            {/* Left: Sidebar Toggle & Contextual Breadcrumb */}
             <div className="flex items-center gap-3">
-              <SidebarTrigger />
-              <Separator orientation="vertical" className="h-4" />
+              <SidebarTrigger className="h-8 w-8 text-muted-foreground hover:text-foreground" />
+              <Separator orientation="vertical" className="h-4 bg-border" />
+
+              <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs">
+                <span className="text-muted-foreground font-medium hidden sm:inline">
+                  {breadcrumb.group}
+                </span>
+                <span className="text-muted-foreground/50 hidden sm:inline">/</span>
+                <span className="text-foreground font-semibold">
+                  {breadcrumb.page}
+                </span>
+              </nav>
+            </div>
+
+            {/* Right: Operational Status & Utilities */}
+            <div className="flex items-center gap-2.5">
+              {/* Active Accounting Period */}
+              <NavLink
+                to="/periods"
+                className="hidden md:inline-flex items-center gap-1.5 h-8 rounded-md border border-border/80 bg-muted/40 px-2.5 text-xs text-foreground hover:bg-muted transition-colors"
+                title="Status periode akuntansi buku besar"
+              >
+                <CalendarClock className="size-3.5 text-muted-foreground" />
+                <span className="text-muted-foreground font-normal">Periode:</span>
+                <span className="font-mono font-medium text-foreground">Nov 2026</span>
+                <span className="text-[10px] font-mono font-semibold px-1 py-0.5 rounded bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80">
+                  OPEN
+                </span>
+              </NavLink>
+
+              <Separator orientation="vertical" className="h-4 bg-border hidden md:block" />
 
               {/* Entity Selector (Multi-Entity RBAC) */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8 gap-2 text-xs font-semibold border-border/60">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 gap-2 px-2.5 text-xs font-medium text-foreground hover:bg-muted border-border/80"
+                  >
                     <Building2 className="size-3.5 text-primary" />
-                    <span>{activeEntityName}</span>
-                    <ChevronDown className="size-3 text-muted-foreground" />
+                    <span className="max-w-[130px] sm:max-w-[180px] truncate">{activeEntityName}</span>
+                    <ChevronDown className="size-3 text-muted-foreground opacity-60" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-64 text-xs">
-                  <DropdownMenuLabel>Pilih Entitas Aktif</DropdownMenuLabel>
+                <DropdownMenuContent align="end" className="w-68 text-xs p-1 shadow-md">
+                  <DropdownMenuLabel className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1.5">
+                    <Building2 className="size-3.5 text-primary" />
+                    <span>Pilih Entitas Aktif</span>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="my-1" />
                   {user?.availableEntities && user.availableEntities.length > 0 ? (
                     user.availableEntities.map((ent) => (
                       <DropdownMenuItem
                         key={ent.entityId}
                         onClick={() => handleSwitchEntity(ent.entityId, ent.entityName)}
-                        className="flex items-center justify-between cursor-pointer"
+                        className="flex items-center justify-between cursor-pointer px-2 py-2 rounded-md"
                       >
-                        <div>
+                        <div className="flex flex-col gap-0.5">
                           <div className="font-semibold text-foreground">{ent.entityName}</div>
                           <div className="text-[10px] text-muted-foreground">
                             Kode: {ent.entityCode} • Peran: {ent.role}
                           </div>
                         </div>
-                        {user.activeEntityId === ent.entityId && <Check className="size-3.5 text-primary" />}
+                        {user.activeEntityId === ent.entityId && <Check className="size-3.5 text-primary ml-2 shrink-0" />}
                       </DropdownMenuItem>
                     ))
                   ) : (
-                    <DropdownMenuItem className="text-muted-foreground">
+                    <DropdownMenuItem className="text-muted-foreground text-xs py-2">
                       Tidak ada entitas lain yang ditugaskan
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Active Accounting Period Chip */}
-              <Badge variant="info" size="sm" className="hidden sm:inline-flex items-center gap-1.5 font-normal">
-                <CalendarClock className="size-3 text-[#0D6276] dark:text-teal-300" />
-                <span>Nov 2026</span>
-                <span className="text-[10px] font-mono font-semibold text-[#0D6276] dark:text-teal-300">OPEN</span>
-              </Badge>
-            </div>
-
-            {/* Right Topbar Actions */}
-            <div className="flex items-center gap-2.5">
+              {/* Theme Switcher Button */}
               <Button
-                variant="outline"
-                size="sm"
-                className="gap-1.5 text-xs font-medium h-8 border-border/60"
+                variant="ghost"
+                size="icon"
+                className="size-8 text-muted-foreground hover:text-foreground rounded-md cursor-pointer"
                 onClick={() => setTheme(isDark ? "light" : "dark")}
+                aria-label={isDark ? "Ganti ke mode terang" : "Ganti ke mode gelap"}
+                title={isDark ? "Ganti ke mode terang" : "Ganti ke mode gelap"}
               >
-                {isDark ? <Sun className="size-3.5 text-amber-500" /> : <Moon className="size-3.5 text-slate-700" />}
-                <span className="hidden sm:inline">{isDark ? "Light" : "Dark"}</span>
+                {isDark ? <Sun className="size-4 text-amber-500" /> : <Moon className="size-4 text-slate-700 dark:text-slate-300" />}
               </Button>
             </div>
           </header>

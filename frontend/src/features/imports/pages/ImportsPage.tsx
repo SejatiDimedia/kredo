@@ -27,6 +27,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { apiFetch } from "@/lib/api"
+import { useAuth } from "@/features/auth/context/AuthContext"
+import { toast } from "sonner"
 import type { ImportJobResponse } from "../types"
 import {
   UploadCloud,
@@ -44,6 +46,8 @@ import {
 
 export function ImportsPage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const activeEntityId = user?.activeEntityId || 1
   const fileInputRef = React.useRef<HTMLInputElement>(null)
 
   // Upload state
@@ -62,14 +66,14 @@ export function ImportsPage() {
   const loadJobHistory = React.useCallback(async () => {
     try {
       setIsLoadingHistory(true)
-      const data = await apiFetch<ImportJobResponse[]>("/imports/jobs?entityId=1")
+      const data = await apiFetch<ImportJobResponse[]>(`/imports/jobs?entityId=${activeEntityId}`)
       setJobHistory(data)
     } catch {
       // Backend endpoint might still be starting
     } finally {
       setIsLoadingHistory(false)
     }
-  }, [])
+  }, [activeEntityId])
 
   React.useEffect(() => {
     loadJobHistory()
@@ -133,27 +137,25 @@ export function ImportsPage() {
       const formData = new FormData()
       formData.append("file", selectedFile)
 
-      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1"
-      const res = await fetch(
-        `${baseUrl}/imports/csv?entityId=1&autoPost=${isAutoPost}&force=${isForce}`,
+      const result = await apiFetch<ImportJobResponse>(
+        `/imports/csv?entityId=${activeEntityId}&autoPost=${isAutoPost}&force=${isForce}`,
         {
           method: "POST",
           body: formData,
         }
       )
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}))
-        throw new Error(errorData.message || `Gagal mengunggah berkas (${res.status}: ${res.statusText})`)
-      }
-
-      const result: ImportJobResponse = await res.json()
       setLatestResult(result)
       setSelectedFile(null)
       if (fileInputRef.current) fileInputRef.current.value = ""
+      toast.success("Impor CSV berhasil diproses", {
+        description: `${result.successCount} transaksi berhasil, ${result.failureCount} gagal.`,
+      })
       await loadJobHistory()
     } catch (err) {
-      setUploadError(err instanceof Error ? err.message : "Terjadi kesalahan saat memproses impor CSV")
+      const msg = err instanceof Error ? err.message : "Terjadi kesalahan saat memproses impor CSV"
+      setUploadError(msg)
+      toast.error("Gagal Mengimpor CSV", { description: msg })
     } finally {
       setIsUploading(false)
     }
