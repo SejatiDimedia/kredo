@@ -1,0 +1,16 @@
+journal_ref,entry_date,description,account_code,debit,credit,memo
+TX-2026-001,2026-11-15,Penerimaan Penjualan Produk Tunai,1102,15000000.00,0.00,Penerimaan transfer BCA dari Pelanggan
+TX-2026-001,2026-11-15,Penerimaan Penjualan Produk Tunai,4101,0.00,15000000.00,Pendapatan penjualan 100 unit produk
+TX-2026-002,2026-11-16,Pembayaran Beban Gaji Staf Operasional,6301,8500000.00,0.00,Gaji periode 1-15 November
+TX-2026-002,2026-11-16,Pembayaran Beban Gaji Staf Operasional,1102,0.00,8500000.00,Payroll via Bank BCA
+TX-2026-003,2026-11-17,Pengisian Kas Kecil dari Bank,1101,2000000.00,0.00,Tarik tunai petty cash operasional
+TX-2026-003,2026-11-17,Pengisian Kas Kecil dari Bank,1102,0.00,2000000.00,Penarikan tunai via ATM BCA
+TX-2026-004,2026-11-18,Pembayaran Beban Sewa Kantor Cabang,6201,6000000.00,0.00,Sewa kantor cabang bulan November
+TX-2026-004,2026-11-18,Pembayaran Beban Sewa Kantor Cabang,1102,0.00,6000000.00,Transfer BCA ke pemilik gedung
+TX-2026-005,2026-11-19,Pelunasan Piutang Dagang Konsumen,1102,7500000.00,0.00,Pelunasan faktur tagihan INV-089
+TX-2026-005,2026-11-19,Pelunasan Piutang Dagang Konsumen,1201,0.00,7500000.00,Pengurangan saldo piutang PT Berkah
+TX-2026-006,2026-11-20,Pembayaran Utang Usaha ke Vendor,2101,5000000.00,0.00,Pelunasan bahan baku PO-2026-11
+TX-2026-006,2026-11-20,Pembayaran Utang Usaha ke Vendor,1102,0.00,5000000.00,Pembayaran lewat transfer Bank BCA
+TX-2026-007,2026-11-21,Penjualan Gabungan Kas dan Piutang,1102,10000000.00,0.00,Uang muka transfer 50%
+TX-2026-007,2026-11-21,Penjualan Gabungan Kas dan Piutang,1201,10000000.00,0.00,Piutang sisa pembayaran tempo 30 hari
+TX-2026-007,2026-11-21,Penjualan Gabungan Kas dan Piutang,4101,0.00,20000000.00,Pendapatan kontrak penjualan enterprise

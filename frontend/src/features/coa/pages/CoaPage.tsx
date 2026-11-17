@@ -299,15 +299,15 @@ export function CoaPage() {
   const getCategoryBadge = (category: CoaAccount["category"]) => {
     switch (category) {
       case "ASSET":
-        return <Badge variant="outline" className="border-teal-500/30 text-teal-700 dark:text-teal-400">ASET</Badge>
+        return <Badge variant="info" size="sm" className="font-mono uppercase font-semibold">ASET</Badge>
       case "LIABILITY":
-        return <Badge variant="outline" className="border-amber-500/30 text-amber-700 dark:text-amber-400">LIABILITAS</Badge>
+        return <Badge variant="warning" size="sm" className="font-mono uppercase font-semibold">LIABILITAS</Badge>
       case "EQUITY":
-        return <Badge variant="outline" className="border-indigo-500/30 text-indigo-700 dark:text-indigo-400">EKUITAS</Badge>
+        return <Badge variant="purple" size="sm" className="font-mono uppercase font-semibold">EKUITAS</Badge>
       case "REVENUE":
-        return <Badge variant="outline" className="border-emerald-500/30 text-emerald-700 dark:text-emerald-400">PENDAPATAN</Badge>
+        return <Badge variant="success" size="sm" className="font-mono uppercase font-semibold">PENDAPATAN</Badge>
       case "EXPENSE":
-        return <Badge variant="outline" className="border-rose-500/30 text-rose-700 dark:text-rose-400">BEBAN</Badge>
+        return <Badge variant="destructive" size="sm" className="font-mono uppercase font-semibold">BEBAN</Badge>
     }
   }
 

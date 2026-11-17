@@ -181,7 +181,7 @@ export function ImportsPage() {
             <h1 className="text-2xl font-bold tracking-tight text-foreground font-heading">
               Impor Massal Jurnal (Batch Engine)
             </h1>
-            <Badge variant="outline" className="border-primary/40 text-primary text-xs font-semibold">
+            <Badge variant="info" size="sm" className="font-semibold">
               <FileSpreadsheet className="size-3 mr-1" /> Chunk Processing
             </Badge>
           </div>
@@ -508,8 +508,9 @@ export function ImportsPage() {
                     </TableCell>
                     <TableCell className="text-center pr-6 py-3">
                       <Badge
-                        variant={job.status === "COMPLETED" ? "default" : job.status === "FAILED" ? "destructive" : "secondary"}
-                        className="text-[10px]"
+                        variant={job.status === "COMPLETED" ? "success" : job.status === "FAILED" ? "destructive" : "warning"}
+                        size="sm"
+                        className="font-mono uppercase font-semibold"
                       >
                         {job.status}
                       </Badge>

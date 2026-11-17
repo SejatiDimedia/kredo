@@ -208,19 +208,19 @@ export function PeriodsPage() {
                     </TableCell>
                     <TableCell className="text-center py-3">
                       {period.status === "OPEN" && (
-                        <Badge variant="secondary" className="gap-1 font-semibold text-xs text-teal-700 dark:text-teal-300">
+                        <Badge variant="info" size="sm" className="gap-1 font-mono uppercase font-semibold">
                           <Unlock className="size-3" />
                           OPEN
                         </Badge>
                       )}
                       {period.status === "CLOSED" && (
-                        <Badge variant="outline" className="gap-1 font-normal text-xs text-muted-foreground">
+                        <Badge variant="secondary" size="sm" className="gap-1 font-mono uppercase font-medium">
                           <Lock className="size-3" />
                           CLOSED
                         </Badge>
                       )}
                       {period.status === "LOCKED" && (
-                        <Badge variant="destructive" className="gap-1 text-xs">
+                        <Badge variant="destructive" size="sm" className="gap-1 font-mono uppercase font-medium">
                           <Lock className="size-3" />
                           LOCKED
                         </Badge>

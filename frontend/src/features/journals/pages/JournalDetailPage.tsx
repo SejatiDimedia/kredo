@@ -57,7 +57,7 @@ import {
   Send,
 } from "lucide-react"
 import { apiFetch } from "@/lib/api"
-import type { JournalResponse } from "../types"
+import type { JournalResponse, JournalStatus } from "../types"
 
 interface AccountData {
   id: number
@@ -143,6 +143,21 @@ export function JournalDetailPage() {
     }
   }
 
+  const getStatusVariant = (status: JournalStatus) => {
+    switch (status) {
+      case "POSTED":
+        return "success"
+      case "APPROVED":
+        return "info"
+      case "SUBMITTED":
+        return "warning"
+      case "DRAFT":
+        return "secondary"
+      case "CANCELLED":
+        return "destructive"
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-3 text-muted-foreground text-xs">
@@ -198,10 +213,10 @@ export function JournalDetailPage() {
               <h1 className="text-2xl font-bold tracking-tight text-foreground font-heading">
                 {journal.journalNo || `Draft #${journal.id}`}
               </h1>
-              <Badge variant="secondary" className="font-semibold text-xs">
+              <Badge variant={getStatusVariant(journal.status)} size="sm" className="font-mono font-semibold">
                 {journal.status}
               </Badge>
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" size="sm" className="font-mono">
                 {journal.source}
               </Badge>
             </div>

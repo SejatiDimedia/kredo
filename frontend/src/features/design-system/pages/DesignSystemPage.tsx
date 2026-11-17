@@ -229,7 +229,7 @@ export function DesignSystemPage() {
           </div>
         </TabsContent>
 
-        {/* TAB 2: ACTIONS */}
+        {/* TAB 2: ACTIONS & BADGES */}
         <TabsContent value="actions" className="space-y-6">
           <Card className="border-border/40 p-6 shadow-xs">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Button Variants</h3>
@@ -240,6 +240,78 @@ export function DesignSystemPage() {
               <Button variant="ghost">Button Ghost</Button>
               <Button variant="destructive">Button Destructive</Button>
               <Button variant="link">Button Link</Button>
+            </div>
+          </Card>
+
+          {/* Badge Showcase: Fintech Precision Design System */}
+          <Card className="border-border/40 p-6 shadow-xs space-y-6">
+            <div>
+              <h3 className="text-sm font-semibold tracking-tight text-foreground">
+                Fintech Status & Semantic Badges
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Standar badge akuntansi Kredo: sudut terstruktur (rounded-md), background soft-tinted, border halus, dan rasio kontras WCAG AAA (&gt;7:1).
+              </p>
+            </div>
+
+            {/* Semantic Variants */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                Semantic Color Tokens
+              </span>
+              <div className="flex flex-wrap gap-2.5 items-center">
+                <Badge variant="default">Default Brand</Badge>
+                <Badge variant="success">Success / Posted</Badge>
+                <Badge variant="info">Info / In Progress</Badge>
+                <Badge variant="warning">Warning / Submitted</Badge>
+                <Badge variant="destructive">Destructive / Error</Badge>
+                <Badge variant="purple">Purple / Equity</Badge>
+                <Badge variant="blue">Blue / Approver</Badge>
+                <Badge variant="secondary">Secondary / Draft</Badge>
+                <Badge variant="outline">Outline Neutral</Badge>
+              </div>
+            </div>
+
+            {/* Ledger Status Examples */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                Status Siklus Jurnal (Journal Lifecycle)
+              </span>
+              <div className="flex flex-wrap gap-2.5 items-center">
+                <Badge variant="secondary" size="sm" className="font-mono uppercase font-medium">DRAFT</Badge>
+                <Badge variant="warning" size="sm" className="font-mono uppercase font-semibold">SUBMITTED</Badge>
+                <Badge variant="info" size="sm" className="font-mono uppercase font-semibold">APPROVED</Badge>
+                <Badge variant="success" size="sm" className="font-mono uppercase font-semibold">POSTED</Badge>
+                <Badge variant="destructive" size="sm" className="font-mono uppercase font-medium">CANCELLED</Badge>
+              </div>
+            </div>
+
+            {/* COA Category Examples */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                Kategori Bagan Akun (COA Classification)
+              </span>
+              <div className="flex flex-wrap gap-2.5 items-center">
+                <Badge variant="info" size="sm" className="font-mono font-semibold">1-000 ASET</Badge>
+                <Badge variant="warning" size="sm" className="font-mono font-semibold">2-000 LIABILITAS</Badge>
+                <Badge variant="purple" size="sm" className="font-mono font-semibold">3-000 EKUITAS</Badge>
+                <Badge variant="success" size="sm" className="font-mono font-semibold">4-000 PENDAPATAN</Badge>
+                <Badge variant="destructive" size="sm" className="font-mono font-semibold">5-000 BEBAN</Badge>
+              </div>
+            </div>
+
+            {/* Sizes & Shapes */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                Ukuran & Bentuk (Sizes & Shapes)
+              </span>
+              <div className="flex flex-wrap gap-3 items-center">
+                <Badge variant="info" size="sm">Small (h-4)</Badge>
+                <Badge variant="info" size="default">Default (h-5)</Badge>
+                <Badge variant="info" size="lg">Large (h-6)</Badge>
+                <Badge variant="success" shape="pill" size="sm">Pill Variant</Badge>
+                <Badge variant="warning" shape="pill" size="default">Pill Status</Badge>
+              </div>
             </div>
           </Card>
         </TabsContent>

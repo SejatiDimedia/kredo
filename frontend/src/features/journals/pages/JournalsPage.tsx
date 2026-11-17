@@ -116,15 +116,15 @@ export function JournalsPage() {
   const getStatusBadge = (status: JournalStatus) => {
     switch (status) {
       case "POSTED":
-        return <Badge variant="secondary" className="font-semibold text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30">POSTED</Badge>
+        return <Badge variant="success" size="sm" className="font-mono uppercase font-semibold">POSTED</Badge>
       case "APPROVED":
-        return <Badge variant="outline" className="border-teal-500/40 text-teal-700 dark:text-teal-400 text-[10px]">APPROVED</Badge>
+        return <Badge variant="info" size="sm" className="font-mono uppercase font-semibold">APPROVED</Badge>
       case "SUBMITTED":
-        return <Badge variant="outline" className="border-amber-500/40 text-amber-700 dark:text-amber-400 text-[10px]">SUBMITTED</Badge>
+        return <Badge variant="warning" size="sm" className="font-mono uppercase font-semibold">SUBMITTED</Badge>
       case "DRAFT":
-        return <Badge variant="outline" className="text-muted-foreground text-[10px]">DRAFT</Badge>
+        return <Badge variant="secondary" size="sm" className="font-mono uppercase font-medium">DRAFT</Badge>
       case "CANCELLED":
-        return <Badge variant="destructive" className="text-[10px]">CANCELLED</Badge>
+        return <Badge variant="destructive" size="sm" className="font-mono uppercase font-medium">CANCELLED</Badge>
     }
   }
 

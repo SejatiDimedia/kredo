@@ -1,0 +1,13 @@
+journal_ref,entry_date,description,account_code,debit,credit,memo
+TX-ERR-001,2026-11-22,Penjualan Barang Jadi Tunai,1102,3000000.00,0.00,Transaksi normal valid
+TX-ERR-001,2026-11-22,Penjualan Barang Jadi Tunai,4101,0.00,3000000.00,Pendapatan penjualan produk
+TX-ERR-002,2026-11-23,Transaksi Tidak Seimbang Sengaja,1102,5000000.00,0.00,Debit 5 juta
+TX-ERR-002,2026-11-23,Transaksi Tidak Seimbang Sengaja,4101,0.00,4000000.00,Kredit 4 juta (Selisih 1 juta)
+TX-ERR-003,2026-11-24,Pembayaran Sewa Gudang Logistik,6201,2500000.00,0.00,Beban sewa normal
+TX-ERR-003,2026-11-24,Pembayaran Sewa Gudang Logistik,1102,0.00,2500000.00,Kas keluar via transfer BCA
+TX-ERR-004,2026-11-25,Transaksi Akun Salah Tidak Terdaftar,9999,1000000.00,0.00,Akun 9999 fiktif
+TX-ERR-004,2026-11-25,Transaksi Akun Salah Tidak Terdaftar,1102,0.00,1000000.00,Kas keluar
+TX-ERR-005,2026-05-15,Transaksi di Periode Tutup Buku,1102,4000000.00,0.00,Kas masuk bulan Mei (CLOSED)
+TX-ERR-005,2026-05-15,Transaksi di Periode Tutup Buku,4101,0.00,4000000.00,Pendapatan penjualan
+TX-ERR-006,2026-11-26,Pembayaran Utang Pembelian Perlengkapan,2101,1500000.00,0.00,Pelunasan utang normal
+TX-ERR-006,2026-11-26,Pembayaran Utang Pembelian Perlengkapan,1102,0.00,1500000.00,Transfer kas bank

@@ -87,17 +87,17 @@ export function BalanceBar({
           {/* Balance Status Badge */}
           <div className="flex items-center">
             {isBalanced ? (
-              <Badge variant="outline" className="border-teal-500/40 text-teal-700 dark:text-teal-400 gap-1.5 py-1 px-2.5 font-semibold">
+              <Badge variant="success" size="lg" className="gap-1.5 font-semibold">
                 <CheckCircle2 className="size-3.5" />
                 Seimbang
               </Badge>
             ) : !isZero ? (
-              <Badge variant="destructive" className="gap-1.5 py-1 px-2.5 font-semibold">
+              <Badge variant="destructive" size="lg" className="gap-1.5 font-semibold">
                 <AlertTriangle className="size-3.5" />
                 Selisih Pembukuan
               </Badge>
             ) : (
-              <Badge variant="outline" className="text-muted-foreground py-1 px-2.5">
+              <Badge variant="secondary" size="lg" className="font-medium">
                 Belum Ada Nominal
               </Badge>
             )}

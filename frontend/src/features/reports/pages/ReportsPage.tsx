@@ -341,11 +341,11 @@ export function ReportsPage() {
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>Laba Bersih Periode Berjalan</span>
                   {incomeStatement?.isProfitable ? (
-                    <Badge variant="outline" className="border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-[10px] font-semibold">
+                    <Badge variant="success" size="sm" className="font-mono font-semibold">
                       SURPLUS / PROFIT
                     </Badge>
                   ) : (
-                    <Badge variant="destructive" className="text-[10px] font-semibold">
+                    <Badge variant="destructive" size="sm" className="font-mono font-semibold">
                       DEFISIT / RUGI
                     </Badge>
                   )}
@@ -376,7 +376,7 @@ export function ReportsPage() {
                     <CardTitle className="text-sm font-semibold">Rincian Akun Pendapatan</CardTitle>
                     <CardDescription className="text-xs">Akun bertipe REVENUE (Saldo Normal Kredit)</CardDescription>
                   </div>
-                  <Badge variant="outline" className="text-[10px] font-mono border-emerald-500/30 text-emerald-700 dark:text-emerald-400">
+                  <Badge variant="success" size="sm" className="font-mono">
                     {incomeStatement?.revenues.length || 0} Akun
                   </Badge>
                 </div>
@@ -448,7 +448,7 @@ export function ReportsPage() {
                     <CardTitle className="text-sm font-semibold">Rincian Akun Beban</CardTitle>
                     <CardDescription className="text-xs">Akun bertipe EXPENSE (Saldo Normal Debit)</CardDescription>
                   </div>
-                  <Badge variant="outline" className="text-[10px] font-mono border-rose-500/30 text-rose-700 dark:text-rose-400">
+                  <Badge variant="destructive" size="sm" className="font-mono">
                     {incomeStatement?.expenses.length || 0} Akun
                   </Badge>
                 </div>
@@ -553,11 +553,11 @@ export function ReportsPage() {
 
             <div className="flex items-center gap-3 self-end sm:self-center">
               {balanceSheet?.isBalanced ? (
-                <Badge variant="outline" className="border-emerald-500/40 text-emerald-700 dark:text-emerald-400 gap-1.5 py-1 px-3 text-xs font-bold">
+                <Badge variant="success" size="lg" className="gap-1.5 font-bold">
                   <CheckCircle2 className="size-4" /> NERACA SEIMBANG
                 </Badge>
               ) : (
-                <Badge variant="destructive" className="gap-1.5 py-1 px-3 text-xs font-bold">
+                <Badge variant="destructive" size="lg" className="gap-1.5 font-bold">
                   <AlertTriangle className="size-4" /> SELISIH NERACA
                 </Badge>
               )}

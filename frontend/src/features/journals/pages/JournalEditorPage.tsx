@@ -353,7 +353,7 @@ export function JournalEditorPage() {
             <h1 className="text-2xl font-bold tracking-tight text-foreground font-heading">
               Entri Jurnal Double-Entry
             </h1>
-            <Badge variant="outline" className="border-teal-500/30 text-teal-700 dark:text-teal-400 text-xs">
+            <Badge variant="info" size="sm" className="font-medium">
               Periode Aktif (OPEN)
             </Badge>
           </div>

@@ -167,7 +167,7 @@ export function ApprovalsPage() {
             <h1 className="text-2xl font-bold tracking-tight text-foreground font-heading">
               Antrean Persetujuan Jurnal
             </h1>
-            <Badge variant="outline" className="border-amber-500/40 text-amber-700 dark:text-amber-400 text-xs">
+            <Badge variant="warning" size="sm">
               {drafts.length} Menunggu Verifikasi
             </Badge>
           </div>
@@ -253,7 +253,7 @@ export function ApprovalsPage() {
                       <div className="flex items-center gap-1.5">
                         <span className="font-semibold text-foreground">User ID {draft.createdBy}</span>
                         {user && user.id === draft.createdBy && (
-                          <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-400/30">
+                          <Badge variant="secondary" size="sm" className="font-medium">
                             Anda (Maker)
                           </Badge>
                         )}

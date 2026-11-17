@@ -147,11 +147,11 @@ export function AuditPage() {
 
   // Helper badge color
   const getActionBadgeVariant = (action: string) => {
-    if (action.includes("POST")) return "default"
-    if (action.includes("APPROVE")) return "secondary"
-    if (action.includes("REJECT")) return "destructive"
-    if (action.includes("REVERSE")) return "destructive"
-    return "outline"
+    if (action.includes("POST")) return "success"
+    if (action.includes("APPROVE")) return "info"
+    if (action.includes("REJECT") || action.includes("REVERSE")) return "destructive"
+    if (action.includes("CREATE") || action.includes("SUBMIT")) return "warning"
+    return "secondary"
   }
 
   return (
@@ -176,7 +176,7 @@ export function AuditPage() {
             <h1 className="text-2xl font-bold tracking-tight text-foreground font-heading">
               Jejak Audit & Rekonsiliasi Integritas
             </h1>
-            <Badge variant="outline" className="border-teal-500/40 text-teal-700 dark:text-teal-400 text-xs font-semibold">
+            <Badge variant="info" size="sm" className="font-semibold">
               <Lock className="size-3 mr-1" /> Immutability Terjamin
             </Badge>
           </div>
@@ -221,8 +221,8 @@ export function AuditPage() {
               </div>
               {reconciliation && (
                 <Badge
-                  variant={reconciliation.isBalanced ? "default" : "destructive"}
-                  className="text-[11px]"
+                  variant={reconciliation.isBalanced ? "success" : "destructive"}
+                  size="sm"
                 >
                   {reconciliation.isBalanced ? (
                     <span className="flex items-center gap-1">

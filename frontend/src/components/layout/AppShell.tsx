@@ -62,11 +62,11 @@ export function AppShell() {
   const activeEntityName = user?.activeEntityName || "PT Maju Jaya Sejahtera"
   const initials = user?.fullName
     ? user.fullName
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase()
     : "KD"
 
   const handleLogout = async () => {
@@ -309,34 +309,6 @@ export function AppShell() {
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
-
-            <div className="flex justify-center w-full px-2 py-0.5">
-              <Separator className="bg-sidebar-border/60 w-full group-data-[collapsible=icon]:w-5" />
-            </div>
-
-            {/* Group 3: Design System & Referensi */}
-            <SidebarGroup className="p-0 group-data-[collapsible=icon]:p-0">
-              <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/70 px-2 h-7 group-data-[collapsible=icon]:hidden">
-                Design & Referensi
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu className="gap-1 group-data-[collapsible=icon]:gap-1.5 group-data-[collapsible=icon]:items-center">
-                  <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
-                    <SidebarMenuButton
-                      asChild
-                      isActive={location.pathname === "/design-system"}
-                      tooltip="Design System & Komponen"
-                      className="group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center"
-                    >
-                      <NavLink to="/design-system" className="flex items-center gap-2.5 w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:size-full">
-                        <Palette className="size-4 shrink-0" />
-                        <span className="group-data-[collapsible=icon]:hidden">Design System UI</span>
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
           </SidebarContent>
 
           {/* Sidebar Footer: Pengguna Aktif & Menu Logout */}
@@ -445,10 +417,10 @@ export function AppShell() {
               </DropdownMenu>
 
               {/* Active Accounting Period Chip */}
-              <Badge variant="outline" className="hidden sm:inline-flex items-center gap-1.5 text-xs font-normal border-teal-500/30 bg-teal-500/5">
-                <CalendarClock className="size-3 text-teal-700 dark:text-teal-400" />
+              <Badge variant="info" size="sm" className="hidden sm:inline-flex items-center gap-1.5 font-normal">
+                <CalendarClock className="size-3 text-[#0D6276] dark:text-teal-300" />
                 <span>Nov 2026</span>
-                <span className="text-[10px] font-semibold text-teal-700 dark:text-teal-400">OPEN</span>
+                <span className="text-[10px] font-mono font-semibold text-[#0D6276] dark:text-teal-300">OPEN</span>
               </Badge>
             </div>
 

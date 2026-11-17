@@ -169,7 +169,7 @@ export function DashboardPage() {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground">Total Aset</span>
-              <Badge variant="outline" className="text-[10px] font-mono border-teal-500/30 text-teal-700 dark:text-teal-400">
+              <Badge variant="info" size="sm" className="font-mono">
                 Neraca
               </Badge>
             </div>
@@ -194,7 +194,7 @@ export function DashboardPage() {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground">Total Liabilitas (Kewajiban)</span>
-              <Badge variant="outline" className="text-[10px] font-mono border-amber-500/30 text-amber-700 dark:text-amber-400">
+              <Badge variant="warning" size="sm" className="font-mono">
                 Liabilitas
               </Badge>
             </div>
@@ -219,7 +219,7 @@ export function DashboardPage() {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground">Total Ekuitas Modal</span>
-              <Badge variant="outline" className="text-[10px] font-mono border-blue-500/30 text-blue-700 dark:text-blue-400">
+              <Badge variant="purple" size="sm" className="font-mono">
                 Modal
               </Badge>
             </div>
@@ -244,7 +244,7 @@ export function DashboardPage() {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground">Laba Bersih Berjalan</span>
-              <Badge variant="outline" className="text-[10px] font-mono border-emerald-500/30 text-emerald-700 dark:text-emerald-400">
+              <Badge variant="success" size="sm" className="font-mono">
                 P&L Net
               </Badge>
             </div>
@@ -349,7 +349,7 @@ export function DashboardPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <CardTitle className="text-sm font-semibold">Transaksi Terposting Terbaru</CardTitle>
-                  <Badge variant="outline" className="text-[10px] border-teal-500/30 text-teal-700 dark:text-teal-400">
+                  <Badge variant="info" size="sm">
                     Buku Besar
                   </Badge>
                 </div>
