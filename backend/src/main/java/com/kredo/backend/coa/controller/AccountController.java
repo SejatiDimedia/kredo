@@ -1,5 +1,6 @@
 package com.kredo.backend.coa.controller;
 
+import com.kredo.backend.auth.security.UserPrincipal;
 import com.kredo.backend.coa.dto.AccountResponse;
 import com.kredo.backend.coa.dto.CreateAccountRequest;
 import com.kredo.backend.coa.service.AccountService;
@@ -7,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,8 +16,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/accounts")
 @RequiredArgsConstructor
-@CrossOrigin(origins = { "http://localhost:5173", "http://127.0.0.1:5173" }) // Izinkan Frontend React Vite kita
-                                                                             // mengakses API ini (CORS)
 public class AccountController {
 
     private final AccountService accountService;
@@ -23,17 +23,28 @@ public class AccountController {
     // GET /api/v1/accounts?entityId=1
     @GetMapping
     public ResponseEntity<List<AccountResponse>> getAccounts(
-            @RequestParam(defaultValue = "1") Long entityId) {
-        List<AccountResponse> accounts = accountService.getAccountsByEntity(entityId);
+            @RequestParam(required = false) Long entityId,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        Long effectiveEntityId = resolveEntityId(entityId, principal);
+        List<AccountResponse> accounts = accountService.getAccountsByEntity(effectiveEntityId);
         return ResponseEntity.ok(accounts);
     }
 
     // POST /api/v1/accounts?entityId=1
     @PostMapping
     public ResponseEntity<AccountResponse> createAccount(
-            @RequestParam(defaultValue = "1") Long entityId,
-            @Valid @RequestBody CreateAccountRequest request) {
-        AccountResponse created = accountService.createAccount(entityId, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+            @RequestParam(required = false) Long entityId,
+            @Valid @RequestBody CreateAccountRequest request,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        Long effectiveEntityId = resolveEntityId(entityId, principal);
+        AccountResponse response = accountService.createAccount(effectiveEntityId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    private Long resolveEntityId(Long entityIdParam, UserPrincipal principal) {
+        if (principal != null && principal.getEntityId() != null) {
+            return principal.getEntityId();
+        }
+        return entityIdParam != null ? entityIdParam : 1L;
     }
 }
